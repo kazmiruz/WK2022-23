@@ -1,0 +1,160 @@
+"ASV","Assigned_Cluster","stat","p.value"
+"Actinomycetota; Micrococcales; Candidatus Aquiluna; ASV_12","1,2,4,5,6,7",1,0.001
+"Actinomycetota; Microtrichales; Ilumatobacter; ASV_56","1,2,4,5,6,7",1,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_158","4",1,0.001
+"Domain Eukaryota; ASV_898","3",0.999911951540364,0.001
+"Pseudomonadota; Rhodobacterales; Planktomarina; ASV_8","1,2,4,5,6,7",0.9998591824278,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_523","3",0.999630083595403,0.001
+"Unknown; ASV_744","3",0.999536565255111,0.001
+"Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_241","4",0.999312767112311,0.001
+"Domain Eukaryota; ASV_739","3",0.998776387731201,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_577","3",0.998765819446236,0.001
+"Pseudomonadota; Burkholderiales; Family Comamonadaceae; ASV_172","3,4",0.998614955100109,0.001
+"Planctomycetota; Planctomycetales; Fuerstia; ASV_162","1,2",0.998372226566132,0.001
+"Verrucomicrobiota; Chthoniobacterales; Terrimicrobium; ASV_341","3",0.997004374573603,0.001
+"Pseudomonadota; Burkholderiales; Family Comamonadaceae; ASV_440","3",0.996802777700641,0.001
+"Actinomycetota; PeM15; Order PeM15; ASV_302","1,2",0.996056223207137,0.001
+"Pseudomonadota; Acetobacterales; Roseomonas; ASV_344","4",0.995760982196608,0.001
+"Planctomycetota; Pirellulales; Family Pirellulaceae; ASV_565","3",0.995636848062785,0.001
+"Actinomycetota; PeM15; Order PeM15; ASV_567","3",0.995237991455445,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_619","3",0.994860792163891,0.001
+"Actinomycetota; Frankiales; hgcI clade; ASV_27","3,4",0.994806382250753,0.001
+"Pseudomonadota; Burkholderiales; Candidatus Methylopumilus; ASV_68","3,4",0.994746828588617,0.001
+"Pseudomonadota; Pseudomonadales; Family SAR86 clade; ASV_6","4,5,6,7",0.993573585851587,0.001
+"Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_556","3",0.992320439039661,0.001
+"Pseudomonadota; Nitrosococcales; Cm1-21; ASV_407","1,2",0.992005555364373,0.001
+"Pseudomonadota; Burkholderiales; Limnohabitans; ASV_111","3,4",0.991999774761963,0.001
+"Pseudomonadota; Hyphomicrobiales; Methylorosula; ASV_411","3,4",0.991832265424132,0.001
+"Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_231","3,4",0.991763027965334,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_129","3,4",0.991191624019992,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_477","3",0.991175603357408,0.001
+"Domain Eukaryota; ASV_891","4",0.991088339338936,0.001
+"Verrucomicrobiota; Methylacidiphilales; Family Methylacidiphilaceae; ASV_518","3",0.990450165306638,0.001
+"Pseudomonadota; Burkholderiales; IS-44; ASV_225","1,2,4,6,7",0.989686474587772,0.001
+"Actinomycetota; Microtrichales; Ilumatobacter; ASV_280","1,2",0.989255798910459,0.001
+"Unknown; ASV_726","6",0.989063212726629,0.001
+"Pseudomonadota; Hyphomicrobiales; Family Beijerinckiaceae; ASV_401","3",0.987948824950637,0.001
+"Pseudomonadota; Burkholderiales; Family Comamonadaceae; ASV_416","3",0.987935917508697,0.001
+"Actinomycetota; Frankiales; Longivirga; ASV_534","3",0.987822297065863,0.001
+"Pseudomonadota; Pseudomonadales; Kineobactrum; ASV_3","2,4,5,6,7",0.987296217313631,0.001
+"Planctomycetota; Pirellulales; Family Pirellulaceae; ASV_450","3",0.987280211910774,0.001
+"Pseudomonadota; Pseudomonadales; SAR92 clade; ASV_24","4,5,6,7",0.987023702870368,0.001
+"Cyanobacteriota; Chloroplast; Order Chloroplast; ASV_122","1,2,4,7",0.986159275285231,0.001
+"Pseudomonadota; Pelagibacterales; Clade Ia; ASV_1","1,4,6,7",0.983538626700711,0.001
+"Domain Eukaryota; ASV_1015","4",0.981699095030702,0.001
+"Domain Eukaryota; ASV_638","1,2,4,6,7",0.980114447766876,0.001
+"Pseudomonadota; Pseudomonadales; Family OM182 clade; ASV_97","1,2,4,6,7",0.980051615263307,0.001
+"Domain Eukaryota; ASV_943","4",0.979333462232865,0.001
+"Pseudomonadota; Burkholderiales; Family Comamonadaceae; ASV_467","3",0.979135125580143,0.001
+"Actinomycetota; PeM15; Order PeM15; ASV_325","1,2",0.978948010582551,0.001
+"Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_220","1,2",0.977690591786717,0.001
+"Planctomycetota; Planctomycetales; Fuerstia; ASV_254","1,2",0.97696119007332,0.001
+"Actinomycetota; Microtrichales; Sva0996 marine group; ASV_76","1,2,6",0.976174420020956,0.001
+"Opisthokonta; Crustacea; Metridia; ASV_649","5",0.975990358625336,0.001
+"Actinomycetota; Micrococcales; Candidatus Planktoluna; ASV_486","3",0.97579177755692,0.001
+"Actinomycetota; Frankiales; hgcI clade; ASV_360","3",0.973842955481415,0.001
+"Pseudomonadota; Rhodospirillales; Family AEGEAN-169 marine group; ASV_49","1,4,6,7",0.972190071340056,0.001
+"Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_554","3",0.971451135327314,0.001
+"Verrucomicrobiota; WCHB1-41; Order WCHB1-41; ASV_456","1,2",0.971054145630499,0.001
+"Verrucomicrobiota; Verrucomicrobiales; Roseibacillus; ASV_293","1,2",0.97086026338426,0.001
+"Pseudomonadota; Pseudomonadales; Family SAR86 clade; ASV_18","4,6,7",0.968942700367226,0.001
+"Pseudomonadota; Hyphomicrobiales; alphaI cluster; ASV_384","1,2",0.968316995251088,0.001
+"Cyanobacteriota; Synechococcales; Synechococcus CC9902; ASV_17","4,5,6,7",0.966735097488134,0.001
+"Pseudomonadota; Pseudomonadales; Family Nitrincolaceae; ASV_121","6",0.964571538473917,0.001
+"Verrucomicrobiota; Verrucomicrobiales; Family DEV007; ASV_350","1,2,6",0.963945386882401,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_123","3",0.963019576417342,0.001
+"Cyanobacteriota; Chloroplast; Order Chloroplast; ASV_283","1,2",0.962817149647486,0.001
+"Pseudomonadota; Burkholderiales; Family Burkholderiaceae; ASV_532","3",0.962815635494397,0.001
+"Unknown; ASV_952","5",0.961975217824305,0.001
+"Domain Eukaryota; ASV_643","4,5,6",0.961101591924423,0.001
+"Pseudomonadota; Phylum Pseudomonadota; ASV_340","1,2",0.960036069683922,0.001
+"Pseudomonadota; Burkholderiales; Rhodoferax; ASV_167","3",0.959522333720342,0.001
+"Pseudomonadota; Puniceispirillales; Candidatus Puniceispirillum; ASV_139","1,2,4,7",0.958863931796117,0.001
+"Verrucomicrobiota; Opitutales; MB11C04 marine group; ASV_175","4,6,7",0.958521619352471,0.001
+"Bacteroidota; Flavobacteriales; NS3a marine group; ASV_98","1,2,4,7",0.955519313820131,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_426","3",0.955468921952713,0.001
+"Pseudomonadota; Pseudomonadales; SUP05 cluster; ASV_9","1,4,6,7",0.95529893129951,0.001
+"Pseudomonadota; Burkholderiales; OM43 clade; ASV_446","1,2",0.955276116084598,0.001
+"Pseudomonadota; Class Gammaproteobacteria; ASV_409","1,2",0.955272023100939,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_72","3",0.95503319070639,0.001
+"Pseudomonadota; Pseudomonadales; Family KI89A clade; ASV_159","4,5,6,7",0.954666818981117,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_500","3",0.952981257553685,0.001
+"Domain Eukaryota; ASV_816","4",0.951946290811165,0.001
+"Bacteroidota; Flavobacteriales; Family Flavobacteriaceae; ASV_267","1,2,4",0.951827483256863,0.001
+"Pseudomonadota; Burkholderiales; OM43 clade; ASV_44","2,4,5,6,7",0.950672197409785,0.001
+"Rhodothermota; Rhodothermales; Family Rhodothermaceae; ASV_571","1",0.949125221131599,0.001
+"Actinomycetota; Frankiales; Candidatus Planktophila; ASV_333","3",0.949033188429948,0.001
+"Pseudomonadota; Burkholderiales; Candidatus Methylopumilus; ASV_427","3",0.948910341671875,0.001
+"Actinomycetota; Micrococcales; Rhodoluna; ASV_330","3,4",0.948683298050514,0.001
+"Unknown; ASV_669","2,4,5,6,7",0.947618647519071,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_66","3,4",0.947103101239634,0.001
+"Actinomycetota; Micrococcales; Candidatus Planktoluna; ASV_466","3",0.94672779828363,0.001
+"Unknown; ASV_657","2,4,5,6,7",0.945000327723467,0.001
+"Domain Eukaryota; ASV_815","5",0.943617974519581,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_212","1,2,3",0.943541677591074,0.001
+"Pseudomonadota; Pseudomonadales; Family SAR86 clade; ASV_187","1,2",0.943477550039582,0.001
+"Verrucomicrobiota; Methylacidiphilales; Family Methylacidiphilaceae; ASV_214","3,4",0.942972353002764,0.001
+"Bacteroidota; Flavobacteriales; Formosa; ASV_5","5,6,7",0.942632463780856,0.001
+"Actinomycetota; Solirubrobacterales; Family Solirubrobacteraceae; ASV_169","3",0.941060830137708,0.001
+"Pseudomonadota; Pseudomonadales; Porticoccus; ASV_110","1,4,6,7",0.940589909348069,0.001
+"Pseudomonadota; Pelagibacterales; Family Clade III; ASV_30","3",0.939555969163971,0.001
+"Actinomycetota; Micrococcales; Family Microbacteriaceae; ASV_489","3",0.938761635812485,0.001
+"Actinomycetota; Nitriliruptorales; Family Nitriliruptoraceae; ASV_580","1",0.93875240161494,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_59","3,4",0.938558216458194,0.001
+"Actinomycetota; Frankiales; hgcI clade; ASV_171","3",0.937832439429828,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_538","1",0.935677325705285,0.001
+"Pseudomonadota; Burkholderiales; Family Comamonadaceae; ASV_119","4",0.935414346693485,0.001
+"Bacteroidota; Chitinophagales; Sediminibacterium; ASV_210","4",0.935414346693485,0.001
+"Actinomycetota; Micrococcales; Candidatus Planktoluna; ASV_413","4",0.935414346693485,0.001
+"Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_417","4",0.935414346693485,0.001
+"Hydrogenedentes; Hydrogenedentiales; Family Hydrogenedensaceae; ASV_578","1,2",0.935414346693485,0.001
+"Verrucomicrobiota; Class Verrucomicrobiia; ASV_359","4",0.934909333840083,0.001
+"Pseudomonadota; Pseudomonadales; Order Pseudomonadales; ASV_392","1,2",0.93455352455079,0.001
+"Pseudomonadota; Rhodobacterales; Family Paracoccaceae; ASV_253","2,4,5,6,7",0.934541367014153,0.001
+"Actinomycetota; Class Actinobacteria; ASV_271","1,2,5,6,7",0.932527168838285,0.001
+"Bacteroidota; Flavobacteriales; Order Flavobacteriales; ASV_106","5,6,7",0.932281479055496,0.001
+"Opisthokonta; Subdivision Metazoa; ASV_647","1,2,3,6",0.931041068546915,0.001
+"Bacteroidota; Flavobacteriales; NS5 marine group; ASV_15","4,5,6,7",0.930015124184429,0.001
+"Domain Eukaryota; ASV_1064","4",0.929983008130143,0.001
+"Bacteroidota; Flavobacteriales; Polaribacter; ASV_4","4,5,6,7",0.927472148258105,0.001
+"Pseudomonadota; Pseudomonadales; Litorivicinus; ASV_260","4,6,7",0.926366314133436,0.001
+"Domain Eukaryota; ASV_668","1,2,4,6,7",0.925985044607519,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_366","3",0.924163419624788,0.001
+"Bacteroidota; Flavobacteriales; Family Crocinitomicaceae; ASV_248","1,2",0.924002245811168,0.001
+"Pseudomonadota; Pseudomonadales; Pseudohongiella; ASV_43","1,2,4,6,7",0.92374495894768,0.001
+"Planctomycetota; Pirellulales; Family Pirellulaceae; ASV_433","3",0.923327278545644,0.001
+"Pseudomonadota; Enterobacterales; Glaciecola; ASV_393","4",0.923297506950058,0.001
+"Unknown; ASV_727","1,2,4,6,7",0.922249568178933,0.001
+"Bacteroidota; Flavobacteriales; NS5 marine group; ASV_92","1,4,6,7",0.922121138510003,0.001
+"Pseudomonadota; Burkholderiales; Limnohabitans; ASV_476","3",0.920446633782461,0.001
+"Domain Eukaryota; ASV_661","4,6,7",0.919960303447915,0.001
+"Pseudomonadota; Pseudomonadales; Family OM182 clade; ASV_64","4,6,7",0.919925287023622,0.001
+"Actinomycetota; Micrococcales; Family Microbacteriaceae; ASV_257","1,2,5,7",0.919853486490835,0.001
+"Domain Eukaryota; ASV_864","4",0.919622200733951,0.001
+"Domain Eukaryota; ASV_1048","4",0.919475910290742,0.001
+"Pseudomonadota; Pseudomonadales; Family SAR86 clade; ASV_191","4,6,7",0.918733207598633,0.001
+"Actinomycetota; Micrococcales; Candidatus Aquiluna; ASV_247","1,2,5,7",0.918703998075174,0.001
+"Pseudomonadota; Pelagibacterales; Family Clade IV; ASV_47","4,6,7",0.918317982870672,0.001
+"Verrucomicrobiota; Verrucomicrobiales; Family DEV007; ASV_249","1,2,4,6",0.918165168205745,0.001
+"Pseudomonadota; Rhodobacterales; Planktomarina; ASV_78","4,5,6,7",0.91788594785231,0.001
+"Pseudomonadota; Burkholderiales; Pseudomethylobacillus; ASV_381","3",0.915231795819144,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_202","1,3,4",0.912600579437717,0.001
+"Verrucomicrobiota; Chthoniobacterales; LD29; ASV_471","3",0.911894729226611,0.001
+"Pseudomonadota; Burkholderiales; Polynucleobacter; ASV_448","3",0.911618244317981,0.001
+"Pseudomonadota; Rhodobacterales; Pseudorhodobacter; ASV_213","1,2,4",0.911556317841667,0.001
+"Thermoplasmatota; Marine Group II; Order Marine Group II; ASV_74","6,7",0.911504881159642,0.001
+"Gemmatimonadota; Class BD2-11 terrestrial group; ASV_490","1,2",0.910911450829666,0.001
+"Pseudomonadota; Enterobacterales; Family Kangiellaceae; ASV_41","4,6,7",0.909021869463238,0.001
+"Domain Eukaryota; ASV_871","4",0.908665529156719,0.001
+"Pseudomonadota; Rickettsiales; Family Mitochondria; ASV_239","1,2,4,7",0.90851534299761,0.001
+"Bacteroidota; Flavobacteriales; Polaribacter; ASV_81","4,5,6,7",0.908310192160585,0.001
+"Actinomycetota; Microtrichales; Order Microtrichales; ASV_308","1,3",0.907770513767078,0.001
+"Cyanobacteriota; Chloroplast; Order Chloroplast; ASV_55","7",0.90698086898752,0.001
+"Domain Eukaryota; ASV_718","5",0.906373128027166,0.001
+"Bacteroidota; Sphingobacteriales; Family NS11-12 marine group; ASV_46","4,5,6,7",0.904898004379227,0.001
+"Domain Eukaryota; ASV_641","2,5,6",0.904369759052841,0.001
+"Pseudomonadota; Rhodobacterales; Family Paracoccaceae; ASV_294","1,2,5",0.904309379845449,0.001
+"Actinomycetota; Frankiales; Family Sporichthyaceae; ASV_496","1",0.90287286259658,0.001
+"Unknown; ASV_877","2",0.902347827591241,0.001
+"Bacteroidota; Flavobacteriales; Fluviicola; ASV_82","6,7",0.901688144636503,0.001
+"Pseudomonadota; Pseudomonadales; Family Halieaceae; ASV_180","1,2,4",0.901426063239203,0.001

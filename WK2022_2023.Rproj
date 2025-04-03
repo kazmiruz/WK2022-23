@@ -1,0 +1,16 @@
+Version: 1.0
+ProjectId: cae23d63-a84a-458c-9a32-34b78331dd85
+
+RestoreWorkspace: Default
+SaveWorkspace: Default
+AlwaysSaveHistory: Default
+
+EnableCodeIndexing: Yes
+UseSpacesForTab: Yes
+NumSpacesForTab: 2
+Encoding: UTF-8
+
+RnwWeave: Sweave
+LaTeX: pdfLaTeX
+
+ProjectName: WK2022_2023
