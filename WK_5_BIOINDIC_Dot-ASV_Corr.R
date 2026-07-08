@@ -103,7 +103,7 @@ parse_indicator_key <- function(x) {
 }
 
 # ========================= # Ordering + indicator-aware prioritization # =========================
-prepare_domain_data <- function(data_plot, data_all, phylum_order, phylum_colors) {
+prepare_domain_data <- function(data_plot, data_all, phylum_order, phylum_colors, max_clus_info) {
   phylum_map <- data_all %>% distinct(ASV, Group)
   
   indicator_info <- data_plot %>% distinct(ASV) %>% mutate(ASV_number = str_extract(ASV, "ASV_\\d+$")) %>%
@@ -111,8 +111,8 @@ prepare_domain_data <- function(data_plot, data_all, phylum_order, phylum_colors
                 select(ASV_number, Clusters), by = "ASV_number") %>%
     mutate(indicator_sort_key = parse_indicator_key(Clusters)) %>% transmute(ASV, indicator_sort_key)
   
-  asv_mean_info <- data_all %>% group_by(ASV, Cluster) %>% summarise(MeanRelAb = mean(RelAb, na.rm = TRUE), .groups = "drop") %>% group_by(ASV) %>%
-    arrange(desc(MeanRelAb), as.numeric(Cluster)) %>% slice(1) %>% ungroup() %>% rename(MaxCluster = Cluster, MaxRelAb = MeanRelAb)
+  # Use pre‑computed max‑cluster info instead of recomputing inside the function
+  asv_mean_info <- max_clus_info   # replaces the old asv_mean_info calculation
   
   distinct_asvs <- data_plot %>% distinct(ASV) %>% left_join(phylum_map, by = "ASV")
   
@@ -283,10 +283,22 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
   dat_all <- proptab %>% as_tibble(rownames = "Sample") %>%
     pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
     left_join(all_asvs_tax %>% select(ASV, Domain2, Group), by = "ASV") %>%
+    left_join(meta.wk.small %>% rownames_to_column("Sample") %>%
+                transmute(Sample, Cluster = as.character(Cluster)), by = "Sample") %>%
     mutate(Genus = str_extract(ASV, "(?<=; )[^;]*(?=; ASV_\\d+$)")) %>%
     semi_join(asv_selection, by = c("ASV", "Domain2"))
   
   dat_plot <- dat_all %>% filter(RelAb > 0)
+  
+  # Compute per-ASV cluster with maximum mean abundance (avoids dplyr slice issues)
+  asv_max_clus <- dat_all %>%
+    group_by(ASV, Cluster) %>%
+    summarise(mean_rel = mean(RelAb, na.rm = TRUE), .groups = "drop") %>%
+    group_by(ASV) %>%
+    summarise(
+      MaxCluster = Cluster[which.max(mean_rel)],
+      MaxRelAb   = max(mean_rel, na.rm = TRUE),
+      .groups = "drop")
   
   dd <- dendro_data(dend_row_order, type = "rectangle")
   n <- nrow(dd$labels)
@@ -301,10 +313,10 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
     summarise(ymin = min(ix) - 0.5, ymax = max(ix) + 0.5, y_center = (min(ix) + max(ix)) / 2, .groups = "drop")
   
   # Panels
-  E <- prepare_domain_data(dat_plot %>% filter(Domain2 == "Eukaryote"), dat_all %>% filter(Domain2 == "Eukaryote"), names(euk_colors), euk_colors) %>%
-    add_indicator_info()
-  P <- prepare_domain_data(dat_plot %>% filter(Domain2 == "Prokaryote"), dat_all %>% filter(Domain2 == "Prokaryote"), names(prok_colors), prok_colors) %>%
-    add_indicator_info()
+  E <- prepare_domain_data(dat_plot %>% filter(Domain2 == "Eukaryote"), dat_all %>% filter(Domain2 == "Eukaryote"),
+                           names(euk_colors), euk_colors, asv_max_clus) %>% add_indicator_info()
+  P <- prepare_domain_data(dat_plot %>% filter(Domain2 == "Prokaryote"), dat_all %>% filter(Domain2 == "Prokaryote"),
+                           names(prok_colors), prok_colors, asv_max_clus) %>% add_indicator_info()
   
   # Which phyla actually appear in this figure (incl. 'Other' only if used)
   used_euk_phyla  <- sort(unique(as.character(E$d$Group)))
