@@ -28,6 +28,7 @@ library(vegan)     # for statistics (Kruskal)
 library(dunn.test) # Dunn's test
 
 # Divide samples by year and depth groups for plotting
+set.seed(161193)   # reproducible jitter offsets for overlapping points (runif below); WK_6 may be run standalone
 meta_grouped <- meta.wk.small %>% rownames_to_column("Sample") %>%
   mutate(`Longitude [deg]` = as.numeric(`Longitude [deg]`),
          `Latitude [deg]`  = as.numeric(`Latitude [deg]`),
@@ -320,6 +321,7 @@ big_black_theme <- theme_minimal() +
 # 2. Conditional jitter for overlapping map points
 # ============================================================
 add_conditional_jitter <- function(df) {
+  set.seed(161193)   # reproducible jitter offsets (runif) on every call
   df %>%
     mutate(lon_round = round(`Longitude [deg]`, 1),
            lat_round = round(`Latitude [deg]`, 1)) %>%
