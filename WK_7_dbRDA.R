@@ -164,7 +164,7 @@ p1 <- ggplot(sc_si, aes(dbRDA1, dbRDA2)) +
                arrow = arrow(length = unit(1, "cm")), linewidth = 1, color = alpha("black", 0.9)) +
   geom_text_repel(data = sc_bp %>% mutate(Variable = gsub("`", "", Variable)),
                   aes(x = dbRDA1*arrow_scaling_factor, y = dbRDA2*arrow_scaling_factor, label = Variable),
-                  size = 8, fontface = "bold", force = 15, box.padding = 5,
+                  size = 8, fontface = "bold", force = 15, box.padding = 5
                   # segment.color = NA # employ for svg b/c Inkscape doesn't see it
                   ) +
   scale_shape_manual(name = "Year", values = c(`2022` = 21, `2023` = 23),
@@ -190,7 +190,7 @@ p2 <- ggplot(sc_si, aes(dbRDA3, dbRDA2)) +
                arrow = arrow(length = unit(1, "cm")), linewidth = 1, color = alpha("black", 0.9)) +
   geom_text_repel(data = sc_bp %>% mutate(Variable = gsub("`", "", Variable)),
                   aes(x = dbRDA3*arrow_scaling_factor, y = dbRDA2*arrow_scaling_factor, label = Variable),
-                  size = 8, fontface = "bold", force = 15, box.padding = 5,
+                  size = 8, fontface = "bold", force = 15, box.padding = 5
                   # segment.color = NA # employ for svg b/c Inkscape doesn't see it
                   ) +
   scale_shape_manual(name = "Year", values = c(`2022` = 21, `2023` = 23),
