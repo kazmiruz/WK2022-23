@@ -313,10 +313,11 @@ indicator_res <- read_rds("OUTPUT/indicator_res.rds")
 ###########################################
 ### Indicator selection + cosmopolitans ###
 rn <- rownames(indicator_res$A); cn <- colnames(indicator_res$A); ng <- ncol(indicator_res$A)
-pval <- matrix(indicator_res$sign$p.value, nrow = length(rn), ncol = ng)
-valid <- pval < .01 & indicator_res$A >= .6 & indicator_res$B >= .6
-A_mask <- indicator_res$A; A_mask[!valid] <- -Inf
-pick <- ifelse(rowSums(valid) > 0, max.col(A_mask, ties.method = "first"), NA_integer_)
+idx <- indicator_res$sign$index                                             # column of the single best pattern actually permutation-tested per ASV
+valid <- !is.na(idx) & indicator_res$sign$p.value < .01 &                   # significance + A/B must hold for THAT tested pattern...
+  indicator_res$A[cbind(seq_along(rn), idx)] >= .6 &                        # ...not some other A-maximizing combination whose p-value was never tested
+  indicator_res$B[cbind(seq_along(rn), idx)] >= .6
+pick <- ifelse(valid, idx, NA_integer_)                                     # keep the tested pattern (no re-pick by max.col over A)
 specific_asvs <- rn[!is.na(pick)]
 chosen_group <- setNames(rep(NA_character_, length(rn)), rn); chosen_group[!is.na(pick)] <- cn[pick[!is.na(pick)]]
 
