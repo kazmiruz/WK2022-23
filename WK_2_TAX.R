@@ -120,7 +120,7 @@ pr2 <- read_csv("WK_DNA/PR2/pr2_version_5.1.1_merged.csv", show_col_types = FALS
 # predict_pr2 <- function(xs, db, batch = 100, max_hits = 300) {
 #   idx_list <- split(seq_along(xs), ceiling(seq_along(xs) / batch))
 #   fmt_str <- "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovhsp qcovs qcovus"
-#   fmt <- if (.Platform$OS.type == "windows") shQuote(fmt_str) else fmt_str
+#   fmt <- shQuote(fmt_str)   # quote on every platform; otherwise system2() lets the shell split the multi-word -outfmt string on macOS/Linux
 #   cols <- c("qseqid", "sseqid", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore",
 #             "qcovhsp", "qcovs", "qcovus")
 #   out <- vector("list", length(idx_list))
