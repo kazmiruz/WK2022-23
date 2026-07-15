@@ -28,6 +28,7 @@ library(vegan)     # for statistics (Kruskal)
 library(dunn.test) # Dunn's test
 
 # Divide samples by year and depth groups for plotting
+set.seed(161193)   # reproducible jitter offsets for overlapping points (runif below); WK_6 may be run standalone
 meta_grouped <- meta.wk.small %>% rownames_to_column("Sample") %>%
   mutate(`Longitude [deg]` = as.numeric(`Longitude [deg]`),
          `Latitude [deg]`  = as.numeric(`Latitude [deg]`),
@@ -128,7 +129,7 @@ p_maps <- ggplot() +
   coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
   facet_grid(Depth_group ~ Year, labeller = labeller(Year = \(x) paste("Year", x)), switch = "y") +
   annotation_scale(location = "bl", text_cex = 1.5) +
-  annotation_north_arrow(location = "tr", which_north = "true", height = unit(2.3, "cm"), width = unit(2.3, "cm"),) +
+  annotation_north_arrow(location = "tr", which_north = "true", height = unit(2.3, "cm"), width = unit(2.3, "cm")) +
   theme_minimal() +
   theme(panel.grid.major = element_line(color = "grey85", linewidth = 0.2), panel.grid.minor = element_blank(), panel.spacing = unit(2, "lines"),
         axis.title = element_blank(), axis.text  = element_text(size = 20, colour = "black"), axis.ticks = element_line(color = "black"),
@@ -320,6 +321,7 @@ big_black_theme <- theme_minimal() +
 # 2. Conditional jitter for overlapping map points
 # ============================================================
 add_conditional_jitter <- function(df) {
+  set.seed(161193)   # reproducible jitter offsets (runif) on every call
   df %>%
     mutate(lon_round = round(`Longitude [deg]`, 1),
            lat_round = round(`Latitude [deg]`, 1)) %>%
