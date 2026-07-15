@@ -241,8 +241,8 @@ shannon_plot <- ggplot(shannon_long, aes(x = Shannon, y = ClusterName, color = D
   geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), size = 1.5, alpha = 0.8) +
   scale_color_manual(values = c("Eukaryota" = "#D55E00", "Prokaryota" = "#0072B2"),
                      breaks = c("Eukaryota", "Prokaryota")) +
-  scale_x_continuous(breaks = 1:6) +
-  coord_cartesian(xlim = c(1, 6)) +   # zoom the view without dropping out-of-range data from the boxplot stats
+  scale_x_continuous(breaks = 1:6, expand = c(0, 0)) +
+  coord_cartesian(xlim = c(1, 6)) +   # zoom via coord (keeps out-of-range values in the boxplot stats); preserves the original zero-padding
   labs(x = "Shannon Diversity Index", y = NULL) +
   theme_bw() +
   theme(axis.text.y = element_text(face = "bold", color = "black", size = 16),
