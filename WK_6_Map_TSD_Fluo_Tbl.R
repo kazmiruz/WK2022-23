@@ -128,7 +128,7 @@ p_maps <- ggplot() +
   coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
   facet_grid(Depth_group ~ Year, labeller = labeller(Year = \(x) paste("Year", x)), switch = "y") +
   annotation_scale(location = "bl", text_cex = 1.5) +
-  annotation_north_arrow(location = "tr", which_north = "true", height = unit(2.3, "cm"), width = unit(2.3, "cm"),) +
+  annotation_north_arrow(location = "tr", which_north = "true", height = unit(2.3, "cm"), width = unit(2.3, "cm")) +
   theme_minimal() +
   theme(panel.grid.major = element_line(color = "grey85", linewidth = 0.2), panel.grid.minor = element_blank(), panel.spacing = unit(2, "lines"),
         axis.title = element_blank(), axis.text  = element_text(size = 20, colour = "black"), axis.ticks = element_line(color = "black"),
