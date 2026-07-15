@@ -514,8 +514,6 @@ dev.off()
 
 ######################################
 ### Pure Dendrogram + Sample Names ###
-pdf(file = "OUTPUT/dendro_pure.pdf", width = 12, height = 24)
-
 # Create a completely empty heatmap structure
 empty_mat <- matrix(0, nrow = nrow(proptab.trans), ncol = 0)
 rownames(empty_mat) <- rownames(proptab.trans)
@@ -537,27 +535,30 @@ ht <- Heatmap(empty_mat,
               row_dend_width = unit(10, "cm"),
               row_names_gp = gpar(fontsize = 20, fontface = "bold"))
 
-draw(ht)
-
-# Add colored borders to sample names
-for (i in 1:k) {
-  decorate_row_names("dendro_plot", {
-    grid.rect(gp = gpar(col = cluster_palette[i], lwd = 3.2, fill = NULL),
-              width = unit(11.4, "cm"), x = unit(1, "npc") + unit(-0.5, "cm"), just = "center")
-  }, slice = i)
+# Decorations are painted into the CURRENT device (not stored in ht), so replay them for each device
+draw_dendro_pure <- function() {
+  draw(ht)
+  # Add colored borders to sample names
+  for (i in 1:k) {
+    decorate_row_names("dendro_plot", {
+      grid.rect(gp = gpar(col = cluster_palette[i], lwd = 3.2, fill = NULL),
+                width = unit(11.4, "cm"), x = unit(1, "npc") + unit(-0.5, "cm"), just = "center")
+    }, slice = i)
+  }
+  # Add cluster labels
+  for (i in 1:k) {
+    decorate_row_names("dendro_plot", {
+      grid.text(cl_labels[i], x = unit(1, "npc") + unit(1, "cm"), just = "left", gp = gpar(fontsize = 35, fontface = "bold"))
+    }, slice = i)
+  }
 }
 
-# Add cluster labels
-for (i in 1:k) {
-  decorate_row_names("dendro_plot", {
-    grid.text(cl_labels[i], x = unit(1, "npc") + unit(1, "cm"), just = "left", gp = gpar(fontsize = 35, fontface = "bold"))
-  }, slice = i)
-}
-
+pdf(file = "OUTPUT/dendro_pure.pdf", width = 12, height = 24)
+draw_dendro_pure()
 dev.off()
 
 png("OUTPUT/dendro_pure.png", width = 12, height = 24, units = "in", res = 300)
-draw(ht)
+draw_dendro_pure()
 dev.off()
 
 
