@@ -209,15 +209,18 @@ tsg <- bind_rows(read.csv("WK_CTD/tsg_2022_merged.csv", stringsAsFactors = FALSE
 ## Put together all the oceanographic data and derive light attenuation and MLD
 
 ctd <- bind_rows(ctd.auto, ctd.ros_down, ctd.ros_bot, castaway, tsg) %>% filter(!is.na(`Salinity [PSU]`)) %>% # join instrumental readings and rmv rows w/out S
-  group_by(Year, Cruise, Station, Code) %>%                        # group per cast BEFORE deriving Kd/MLD so both reference the correct cast
+  group_by(Year, Cruise, Month, Day, Station, Code, Cast) %>%     # group per PROFILE (date + station + cast) so Kd/MLD reference the correct cast, never crossing dates/casts
 
   # Calculate light attenuation coefficient: Kirk (2011) and Weiskerger et al. (2018).
-  mutate(`Light attenuation coefficient [1/m]` = if_else(
-    `Depth [m]` > 0 & `PAR [umol photons/m^2/sec]` > 0,            # Apply formula only if D > 0 & valid PAR
-    (1 / `Depth [m]`) *                                            # Kd = 1/z*ln(E0/Ez)
-      log(`PAR [umol photons/m^2/sec]`[which.min(`Depth [m]`)] /   # E0 = surface PAR = PAR at the shallowest depth of THIS cast
-            pmax(`PAR [umol photons/m^2/sec]`, 1e-6)),             # ensure there is no division by 0
-    NA_real_) |> (\(x) if_else(x < 0, 0, x))()) %>%                # Remove negative Kd values (when Ez>E0 aka artifact)
+  mutate(
+    .par_valid = is.finite(`Depth [m]`) & is.finite(`PAR [umol photons/m^2/sec]`) & `PAR [umol photons/m^2/sec]` > 0, # rows usable as a surface reference
+    .E0 = if (any(.par_valid)) `PAR [umol photons/m^2/sec]`[.par_valid][which.min(`Depth [m]`[.par_valid])] else NA_real_, # E0 = PAR at shallowest VALID (finite, >0) depth of this profile; NA if none
+    `Light attenuation coefficient [1/m]` = if_else(
+      `Depth [m]` > 0 & `PAR [umol photons/m^2/sec]` > 0 & !is.na(.E0),  # Apply formula only if D > 0, valid PAR, and a valid surface reference exists
+      (1 / `Depth [m]`) *                                            # Kd = 1/z*ln(E0/Ez)
+        log(.E0 / pmax(`PAR [umol photons/m^2/sec]`, 1e-6)),         # ensure there is no division by 0
+      NA_real_) |> (\(x) if_else(x < 0, 0, x))()) %>%                # Remove negative Kd values (when Ez>E0 aka artifact)
+  select(-.par_valid, -.E0) %>%
 
   # Calculate MLD only for CTD stations (ROS-A, ROS-D, ROS-B) and where sigma-theta is available: Peralta-Ferriz and Woodgate (2015)
   mutate(`Mixed Layer Depth [m]` = if (Code[1] %in% c("ROS-A", "ROS-D")) {   # do it only for autonomous and downcast CTD data (upcasts don't have all the depth)
