@@ -397,7 +397,7 @@ draw_wk_complex_hm <- function() {
             #                    axis_param = list(at = log10(c(1, 10, 75)), labels = c(1, 10, 75), labels_rot = 0, gp = gpar(fontsize = 10))),
             bar1 = anno_points(meta.wk.small$`Temperature [deg C]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar2 = anno_points(meta.wk.small$`Salinity`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar2 = anno_points(meta.wk.small$`Salinity [PSU]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
             bar3 = anno_points(meta.wk.small$`Chlorophyll-a fluorescence [mg/m^3]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
