@@ -92,7 +92,7 @@ vif.cca(rda_model) %>% as.data.frame() %>% rownames_to_column("Variable") %>% re
 anova_per_var <- anova.cca(rda_model, permutations = 99999, by = "margin") %>%  # test var. sign-ce if marginal (last in the formula) and store it neatly
   as.data.frame() %>% rownames_to_column("Variable") %>% filter(Variable != "Residual") %>% 
   transmute(Variable = gsub("`", "", Variable), F = round(F, 1), P = `Pr(>F)`,
-            Sig = as.character(symnum(P, cutpoints = c(0, 0.00009, 0.0009, 0.0049, 0.009, 0.09), symbols = c("***", "**", "*", ".", " ")))) %>% arrange(desc(F))
+            Sig = as.character(symnum(P, cutpoints = c(0, 0.00009, 0.0009, 0.0049, 0.009, 1), symbols = c("***", "**", "*", ".", " ")))) %>% arrange(desc(F))
 
 # Variance info for titles
 perc <- round(100 * (summary(rda_model)$cont$importance[2, 1:4]), 1) %>% print()  # Bray-Curtis dis-ty explained by your env var-s: but only only dbRA1 and dbRDA2
