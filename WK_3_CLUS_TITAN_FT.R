@@ -313,10 +313,11 @@ indicator_res <- read_rds("OUTPUT/indicator_res.rds")
 ###########################################
 ### Indicator selection + cosmopolitans ###
 rn <- rownames(indicator_res$A); cn <- colnames(indicator_res$A); ng <- ncol(indicator_res$A)
-pval <- matrix(indicator_res$sign$p.value, nrow = length(rn), ncol = ng)
-valid <- pval < .01 & indicator_res$A >= .6 & indicator_res$B >= .6
-A_mask <- indicator_res$A; A_mask[!valid] <- -Inf
-pick <- ifelse(rowSums(valid) > 0, max.col(A_mask, ties.method = "first"), NA_integer_)
+idx <- indicator_res$sign$index                                             # column of the single best pattern actually permutation-tested per ASV
+valid <- !is.na(idx) & indicator_res$sign$p.value < .01 &                   # significance + A/B must hold for THAT tested pattern...
+  indicator_res$A[cbind(seq_along(rn), idx)] >= .6 &                        # ...not some other A-maximizing combination whose p-value was never tested
+  indicator_res$B[cbind(seq_along(rn), idx)] >= .6
+pick <- ifelse(valid, idx, NA_integer_)                                     # keep the tested pattern (no re-pick by max.col over A)
 specific_asvs <- rn[!is.na(pick)]
 chosen_group <- setNames(rep(NA_character_, length(rn)), rn); chosen_group[!is.na(pick)] <- cn[pick[!is.na(pick)]]
 
@@ -397,7 +398,7 @@ draw_wk_complex_hm <- function() {
             #                    axis_param = list(at = log10(c(1, 10, 75)), labels = c(1, 10, 75), labels_rot = 0, gp = gpar(fontsize = 10))),
             bar1 = anno_points(meta.wk.small$`Temperature [deg C]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar2 = anno_points(meta.wk.small$`Salinity`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar2 = anno_points(meta.wk.small$`Salinity [PSU]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
             bar3 = anno_points(meta.wk.small$`Chlorophyll-a fluorescence [mg/m^3]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
@@ -514,8 +515,6 @@ dev.off()
 
 ######################################
 ### Pure Dendrogram + Sample Names ###
-pdf(file = "OUTPUT/dendro_pure.pdf", width = 12, height = 24)
-
 # Create a completely empty heatmap structure
 empty_mat <- matrix(0, nrow = nrow(proptab.trans), ncol = 0)
 rownames(empty_mat) <- rownames(proptab.trans)
@@ -537,27 +536,30 @@ ht <- Heatmap(empty_mat,
               row_dend_width = unit(10, "cm"),
               row_names_gp = gpar(fontsize = 20, fontface = "bold"))
 
-draw(ht)
-
-# Add colored borders to sample names
-for (i in 1:k) {
-  decorate_row_names("dendro_plot", {
-    grid.rect(gp = gpar(col = cluster_palette[i], lwd = 3.2, fill = NULL),
-              width = unit(11.4, "cm"), x = unit(1, "npc") + unit(-0.5, "cm"), just = "center")
-  }, slice = i)
+# Decorations are painted into the CURRENT device (not stored in ht), so replay them for each device
+draw_dendro_pure <- function() {
+  draw(ht)
+  # Add colored borders to sample names
+  for (i in 1:k) {
+    decorate_row_names("dendro_plot", {
+      grid.rect(gp = gpar(col = cluster_palette[i], lwd = 3.2, fill = NULL),
+                width = unit(11.4, "cm"), x = unit(1, "npc") + unit(-0.5, "cm"), just = "center")
+    }, slice = i)
+  }
+  # Add cluster labels
+  for (i in 1:k) {
+    decorate_row_names("dendro_plot", {
+      grid.text(cl_labels[i], x = unit(1, "npc") + unit(1, "cm"), just = "left", gp = gpar(fontsize = 35, fontface = "bold"))
+    }, slice = i)
+  }
 }
 
-# Add cluster labels
-for (i in 1:k) {
-  decorate_row_names("dendro_plot", {
-    grid.text(cl_labels[i], x = unit(1, "npc") + unit(1, "cm"), just = "left", gp = gpar(fontsize = 35, fontface = "bold"))
-  }, slice = i)
-}
-
+pdf(file = "OUTPUT/dendro_pure.pdf", width = 12, height = 24)
+draw_dendro_pure()
 dev.off()
 
 png("OUTPUT/dendro_pure.png", width = 12, height = 24, units = "in", res = 300)
-draw(ht)
+draw_dendro_pure()
 dev.off()
 
 
@@ -637,7 +639,9 @@ write.csv(ti_off_surf_l$sumz.cp, "OUTPUT/titan_offshore_surface_lat.csv")
 group <- ifelse(off_surf$Code == "FT", "FT", "nonFT")
 ind <- multipatt(txa_off_surf, group, func = "IndVal.g", control = how(nperm = 999))
 plot(ind$A[ind$sign$p.value < 0.01, "FT"], ind$B[ind$sign$p.value < 0.01, "FT"])
-keep <- ind$sign$p.value < 0.01 & ind$A[, "FT"] >= 0.6 & ind$B[, "FT"] >= 0.6
+ft_idx <- match("FT", colnames(ind$A))                                                          # only accept ASVs whose permutation-tested pattern IS the FT column...
+keep <- !is.na(ind$sign$index) & ind$sign$index == ft_idx & ind$sign$p.value < 0.01 &            # ...not one whose p-value belongs to a nonFT/combined pattern
+  ind$A[cbind(seq_len(nrow(ind$A)), ind$sign$index)] >= 0.6 & ind$B[cbind(seq_len(nrow(ind$A)), ind$sign$index)] >= 0.6
 ft_asvs <- rownames(ind$A)[keep]
 tryCatch(cbind(FT = colMeans(txa_off_surf[group == "FT", ft_asvs]), nonFT = colMeans(txa_off_surf[group == "nonFT", ft_asvs])), error = function(e) "No FT indicators")
 
