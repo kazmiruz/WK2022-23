@@ -4,7 +4,7 @@ README — WK2022-23 analysis pipeline
 Overview
 --------
 This repository contains the analysis pipeline used for the WK2022 and WK2023 Hudson/James Bay microbial community study.
-The input files required to run the scripts can be downloaded either at https://osf.io/r32sy or
+The input files required to run the scripts and the resulting output files can be downloaded either at https://osf.io/r32sy or
 https://drive.google.com/drive/folders/19EClHmGsUfJGh99jsMc8_6NDhdeQkEp2.
 
 The scripts assemble metadata and environmental data, clean and classify 16S/18S ASVs, identify plankton communities,
