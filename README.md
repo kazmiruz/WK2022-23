@@ -41,37 +41,71 @@ If you have questions or concerns, contact me at kazmiruz@myumanitoba.ca or the 
 References for packages
 -----------------------
 Auguie, B. (2026). gridExtra: Miscellaneous functions for "grid" graphics (R package version 2.3.1) [Computer software]. https://CRAN.R-project.org/package=gridExtra (https://doi.org/10.32614/CRAN.package.gridExtra)
+
 Baker, M. E., King, R. S., & Kahle, D. (2025). TITAN2: Threshold indicator taxa analysis (R package version 2.4.4) [Computer software]. https://CRAN.R-project.org/package=TITAN2 (https://doi.org/10.32614/CRAN.package.TITAN2)
+
 Campitelli, E. (2025). ggnewscale: Multiple fill and colour scales in 'ggplot2' (R package version 0.5.2) [Computer software]. https://CRAN.R-project.org/package=ggnewscale (https://doi.org/10.32614/CRAN.package.ggnewscale)
+
 Csárdi, G., Hester, J., Wickham, H., Chang, W., Morgan, M., & Tenenbaum, D. (2024). remotes: R package installation from remote repositories, including 'GitHub' (R package version 2.5.0) [Computer software]. https://CRAN.R-project.org/package=remotes (https://doi.org/10.32614/CRAN.package.remotes)
+
 De Cáceres, M., & Legendre, P. (2009). Associations between species and groups of sites: indices and statistical inference. Ecology, 90, 3566–3574. https://doi.org/10.1890/08-1823.1
+
 Dinno, A. (2026). dunn.test: Dunn’s test of multiple comparisons using rank sums (R package version 1.4.1) [Computer software]. https://CRAN.R-project.org/package=dunn.test (https://doi.org/10.32614/CRAN.package.dunn.test)
+
 Dunnington, D. (2025). ggspatial: Spatial data framework for ggplot2 (R package version 1.1.10) [Computer software]. https://CRAN.R-project.org/package=ggspatial (https://doi.org/10.32614/CRAN.package.ggspatial)
+
 Galili, T. (2015). dendextend: An R package for visualizing, adjusting, and comparing trees of hierarchical clustering. Bioinformatics. https://doi.org/10.1093/bioinformatics/btv428
+
 Garnier, S., Simon, R., Ross, R., Noam, R., Rudis, R., Robert, G., Camargo, A. P., Sciaini, M., & Scherer, C. (2024). viridis: Colorblind‑friendly color maps for R (viridis package version 0.6.5) [Computer software]. https://sjmgarnier.github.io/viridis/ (https://doi.org/10.5281/zenodo.4679423)
+
 Gu, Z., Eils, R., & Schlesner, M. (2016). Complex heatmaps reveal patterns and correlations in multidimensional genomic data. Bioinformatics. https://doi.org/10.1093/bioinformatics/btw313
+
 Gu, Z. (2022). Complex Heatmap Visualization. iMeta. https://doi.org/10.1002/imt2.43
+
 Hahsler, M., & Nagar, A. (2024). rBLAST: R interface for the Basic Local Alignment Search Tool (R package version 0.99.4) [Computer software]. Bioconductor. https://doi.org/10.18129/B9.bioc.rBLAST
+
 Hennig, C. (2026). fpc: Flexible procedures for clustering (R package version 2.2-14) [Computer software]. https://CRAN.R-project.org/package=fpc (https://doi.org/10.32614/CRAN.package.fpc)
+
 Maechler, M., Rousseeuw, P., Struyf, A., Hubert, M., & Hornik, K. (2026). cluster: Cluster analysis basics and extensions (R package version 2.1.8.2) [Computer software]. https://CRAN.R-project.org/package=cluster
+
 Morgan, M., & Ramos, M. (2025). BiocManager: Access the Bioconductor Project Package Repository (R package version 1.30.27) [Computer software]. https://CRAN.R-project.org/package=BiocManager (https://doi.org/10.32614/CRAN.package.BiocManager)
+
 Müller, K., & Wickham, H. (2026). tibble: Simple data frames (R package version 3.3.1) [Computer software]. https://CRAN.R-project.org/package=tibble (https://doi.org/10.32614/CRAN.package.tibble)
+
 Oksanen, J., Simpson, G. L., Blanchet, F. G., Kindt, R., Legendre, P., Minchin, P. R., O’Hara, R. B., Solymos, P., Stevens, M. H. H., Szöcs, E., Wagner, H., Bedward, M., Bolker, B., Borcard, D., Carvalho, G., De Cáceres, M., Durand, S., Evangelista, H. B. A., Hannigan, G., Hill, M. O., Lahti, L., Martino, C., Ouellette, M.-H., Cunha, E. R., Smith, T., Stier, A., Ter Braak, C. J. F., & Weedon, J. (2026). vegan: Community ecology package (R package version 2.7‑5) [Computer software]. https://CRAN.R-project.org/package=vegan (https://doi.org/10.32614/CRAN.package.vegan)
+
 Pante, E., Simon‑Bouhet, B., & Irisson, J.-O. (2025). marmap: Import, plot and analyze bathymetric and topographic data (R package version 1.0.12) [Computer software]. https://CRAN.R-project.org/package=marmap (https://doi.org/10.32614/CRAN.package.marmap)
+
 Pedersen, T. L. (2025). patchwork: The composer of plots (R package version 1.3.2) [Computer software]. https://CRAN.R-project.org/package=patchwork (https://doi.org/10.32614/CRAN.package.patchwork)
+
 Pebesma, E., & Bivand, R. (2023). Spatial data science: With applications in R. Chapman & Hall/CRC. https://r-spatial.org/book/ (https://doi.org/10.1201/9780429459016)
+
 Pebesma, E. (2018). Simple features for R: Standardized support for spatial vector data. The R Journal, 10(1), 439–446. https://doi.org/10.32614/RJ-2018-009
+
 Robinson, D., Hayes, A., Couch, S., & Hvitfeldt, E. (2026). broom: Convert statistical objects into tidy tibbles (R package version 1.0.13) [Computer software]. https://CRAN.R-project.org/package=broom (https://doi.org/10.32614/CRAN.package.broom)
+
 R Core Team. (2026). R: A language and environment for statistical computing. R Foundation for Statistical Computing. https://www.R-project.org/ (https://doi.org/10.32614/R.manuals)
+
 Schauberger, P., & Walker, A. (2025). openxlsx: Read, write and edit xlsx files (R package version 4.2.8.1) [Computer software]. https://CRAN.R-project.org/package=openxlsx (https://doi.org/10.32614/CRAN.package.openxlsx)
+
 Schloerke, B., Cook, D., Larmarange, J., Briatte, F., Marbach, M., Thoen, E., Elberg, A., & Crowley, J. (2025). GGally: Extension to 'ggplot2' (R package version 2.4.0) [Computer software]. https://CRAN.R-project.org/package=GGally (https://doi.org/10.32614/CRAN.package.GGally)
+
 Sievert, C. (2020). Interactive web‑based data visualization with R, plotly, and shiny. Chapman & Hall/CRC. https://plotly-r.com
+
 Slowikowski, K. (2026). ggrepel: Automatically position non‑overlapping text labels with 'ggplot2' (R package version 0.9.8) [Computer software]. https://CRAN.R-project.org/package=ggrepel (https://doi.org/10.32614/CRAN.package.ggrepel)
+
 Vaidyanathan, R., Xie, Y., Allaire, J. J., Cheng, J., Sievert, C., & Russell, K. (2023). htmlwidgets: HTML widgets for R (R package version 1.6.4) [Computer software]. https://CRAN.R-project.org/package=htmlwidgets (https://doi.org/10.32614/CRAN.package.htmlwidgets)
+
 Warnes, G. R., Bolker, B., Bonebakker, L., Gentleman, R., Huber, W., Liaw, A., Lumley, T., Maechler, M., Magnusson, A., Moeller, S., Schwartz, M., Venables, W., & Galili, T. (2025). gplots: Various R programming tools for plotting data (R package version 3.3.0) [Computer software]. https://CRAN.R-project.org/package=gplots (https://doi.org/10.32614/CRAN.package.gplots)
+
 Wilke, C. O. (2025). cowplot: Streamlined plot theme and plot annotations for 'ggplot2' (R package version 1.2.0) [Computer software]. https://CRAN.R-project.org/package=cowplot (https://doi.org/10.32614/CRAN.package.cowplot)
+
 Wickham, H. (2016). ggplot2: Elegant graphics for data analysis. Springer‑Verlag New York. https://ggplot2.tidyverse.org
+
 Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L. D., François, R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen, T. L., Miller, E., Bache, S. M., Müller, K., Ooms, J., Robinson, D., Seidel, D. P., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., & Yutani, H. (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686. https://doi.org/10.21105/joss.01686
+
 Wickham, H., & Bryan, J. (2026). readxl: Read Excel files (R package version 1.5.0) [Computer software]. https://CRAN.R-project.org/package=readxl (https://doi.org/10.32614/CRAN.package.readxl)
+
 Wickham, H., & Henry, L. (2026). purrr: Functional programming tools (R package version 1.2.2) [Computer software]. https://CRAN.R-project.org/package=purrr (https://doi.org/10.32614/CRAN.package.purrr)
+
 Wickham, H. (2025). stringr: Simple, consistent wrappers for common string operations (R package version 1.6.0) [Computer software]. https://CRAN.R-project.org/package=stringr (https://doi.org/10.32614/CRAN.package.stringr)
