@@ -73,7 +73,5 @@ Wilke, C. O. (2025). cowplot: Streamlined plot theme and plot annotations for 'g
 Wickham, H. (2016). ggplot2: Elegant graphics for data analysis. Springer‑Verlag New York. https://ggplot2.tidyverse.org
 Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L. D., François, R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen, T. L., Miller, E., Bache, S. M., Müller, K., Ooms, J., Robinson, D., Seidel, D. P., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., & Yutani, H. (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686. https://doi.org/10.21105/joss.01686
 Wickham, H., & Bryan, J. (2026). readxl: Read Excel files (R package version 1.5.0) [Computer software]. https://CRAN.R-project.org/package=readxl (https://doi.org/10.32614/CRAN.package.readxl)
-
 Wickham, H., & Henry, L. (2026). purrr: Functional programming tools (R package version 1.2.2) [Computer software]. https://CRAN.R-project.org/package=purrr (https://doi.org/10.32614/CRAN.package.purrr)
-
 Wickham, H. (2025). stringr: Simple, consistent wrappers for common string operations (R package version 1.6.0) [Computer software]. https://CRAN.R-project.org/package=stringr (https://doi.org/10.32614/CRAN.package.stringr)
