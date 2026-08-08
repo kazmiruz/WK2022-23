@@ -413,48 +413,17 @@ saveRDS(meta.wk.complete, "EXT/meta.wk.complete.rds")
 #################################################################################
 ### Explore the distribution of parameters to make sure there are no oddities ###
 
-# Open a PDF to save the histograms
-pdf("OUT/1_META/wk_parameters_hist.pdf", width = 8.5, height = 12)
+pdf("OUT/wk_parameters_hist.pdf", width = 8.5, height = 12)    # Open PDF
+par(mfrow = c(3, 2), mar = c(5, 6, 4, 3))                      # Six plots per page with wider margins
+for (col_name in names(meta.wk.complete)[sapply(meta.wk.complete, is.numeric)]) {      # Loop through numeric columns
+  x <- na.omit(meta.wk.complete[[col_name]])                                           # Remove missing values
+  if (!length(x)) next                                                                 # Skip empty columns
+  hist(x, main = NULL, xlab = bquote(bold(.(col_name))), xlim = range(x), col = "lightblue", border = "black")  # Plot histogram
+  mtext(paste("Min:", round(min(x), 2)), side = 3, line = 2, adj = 0, cex = 0.8)                                # Add minimum
+  mtext(paste("Max:", round(max(x), 2)), side = 3, line = 1, adj = 0, cex = 0.8)                                # Add maximum
+  mtext(paste("Mean ± SD:", round(mean(x), 2), "±", round(sd(x), 2)), side = 3, line = 0, adj = 0, cex = 0.8)}  # Add mean and SD
+dev.off()                                                      # Close PDF
 
-# Set up 4 plots per page
-par(mfrow = c(3, 2), mar = c(5, 6, 4, 3))  # 3 rows and 2 columns per page; wider left margin
-
-# Loop through numeric columns
-for (col_name in names(meta.wk.complete)) {
-  # Check if the column is numeric
-  if (is.numeric(meta.wk.complete[[col_name]])) {
-    # Extract the column, removing NA values
-    column_data <- na.omit(meta.wk.complete[[col_name]])
-    
-    # Skip if the column is empty after removing NAs
-    if (length(column_data) == 0) next
-    
-    # Calculate basic statistics
-    col_min <- min(column_data)
-    col_max <- max(column_data)
-    col_mean <- mean(column_data)
-    col_sd <- sd(column_data)
-    
-    # Generate x-axis range based on the data
-    x_range <- range(column_data, na.rm = TRUE)
-    
-    # Create a simple histogram
-    hist(column_data,
-         main = NULL,
-         xlab = bquote(bold(.(col_name))),
-         xlim = x_range,  # Use calculated range for x-axis
-         col = "lightblue",
-         border = "black")
-    
-    # Add summary statistics above the graph
-    mtext(paste("Min:", round(col_min, 2)), side = 3, line = 2, adj = 0, cex = 0.8)
-    mtext(paste("Max:", round(col_max, 2)), side = 3, line = 1, adj = 0, cex = 0.8)
-    mtext(paste("Mean ± SD:", round(col_mean, 2), "±", round(col_sd, 2)), side = 3, line = 0, adj = 0, cex = 0.8)
-  }
-}
-
-# Close the PDF
-dev.off()
 
 # # Targeted exploration
 # # salinity change at CTD_STN_13_Z2_B
@@ -468,5 +437,5 @@ dev.off()
 # with(meta.wk.complete, plot(`CDOM Fluorescence [mg/m^3]` ~ `Beam Attenuation [1/m]`))
 # with(meta.wk.complete, plot(`Chlorophyll-a Fluorescence [mg/m^3]` ~ `Beam Attenuation [1/m]`))
 # 
-# View(castaway %>% filter (Year == 2022, Month == 8, Day %in% c(11, 17))) # the Maquatua River at low (A11, 10 pm) and high (A17, 9 pm) tides; sampled at low tide
-# View(castaway %>% filter (Year == 2023, Month == 8, Day == 15))          # near the Moose River at low (noon) and high (5 pm) tides; sampled at low tide
+# View(castaway %>% filter (Year == 2022, Month == 8, Day %in% c(11, 17))) # the Maquatua River at low (A11, 10pm) and high (A17, 9pm) tides; sampled at low
+# View(castaway %>% filter (Year == 2023, Month == 8, Day == 15))          # near the Moose River at low (noon) and high (5 pm) tides; sampled at low
