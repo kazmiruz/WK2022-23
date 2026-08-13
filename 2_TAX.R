@@ -218,11 +218,11 @@ sam.18S.pick <- match(sam.wk.both, plates.18S)
 ################################
 ### Make the final ASV table ###
 
-## WK-only count tables (still with sequences as colnames)
-tab.16S <- seqtab.16S[sam.16S.pick, , drop = FALSE]
-tab.18S <- seqtab.18S[sam.18S.pick, , drop = FALSE]
-ncol(tab.16S) # how many 16S ASVs originally?
-ncol(tab.18S) # how many 18S ASVs originally?
+## WK-only count tables (still with sequences as colnames); remove ASVs absent from every WK sample
+tab.16S <- seqtab.16S[sam.16S.pick, , drop = FALSE]; tab.18S <- seqtab.18S[sam.18S.pick, , drop = FALSE]
+tab.16S <- tab.16S[, colSums(tab.16S) > 0, drop = FALSE]; tab.18S <- tab.18S[, colSums(tab.18S) > 0, drop = FALSE]
+ncol(tab.16S) # how many 16S ASVs originally? 31083
+ncol(tab.18S) # how many 18S ASVs originally?  1946
 
 ## Combined proportional table, filter out rare taxa (>0.01% mean RelAb)
 proptab.small <- cbind(prop.table(as.matrix(tab.16S), margin = 1), prop.table(as.matrix(tab.18S), margin = 1)) %>%
@@ -275,8 +275,8 @@ saveRDS(meta.wk.small, "EXT/meta.wk.small.rds")
 saveRDS(proptab.small.taxan.saman, "EXT/proptab.small.taxan.saman.rds")
 
 # Assess how much RelAb non-rare cover
-mean(rowSums(proptab.small.taxan.saman[, grepl("Eukaryota", colnames(proptab.small.taxan.saman))]))
-mean(rowSums(proptab.small.taxan.saman[, grepl("Bacteria|Archaea", colnames(proptab.small.taxan.saman))]))
+mean(rowSums(proptab.small.taxan.saman[, grepl("Eukaryota", colnames(proptab.small.taxan.saman))]))           # 0.97
+mean(rowSums(proptab.small.taxan.saman[, grepl("Bacteria|Archaea", colnames(proptab.small.taxan.saman))]))    # 0.89
 
 
 # # exploring the taxonomy of different major plankton groups
