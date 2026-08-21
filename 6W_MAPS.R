@@ -4,7 +4,7 @@
 #   Produce faceted cluster maps, the map displaying what have already been sampled in HBC and where my survey fits,
 #   and the maps displaying distribution of PP taxa in surface waters (diatoms, non‑diatom algae, dinoflagellates, and cyanobacteria).
 #
-# Prerequisite: run 3_CLUS first, as it generate various objects used here.
+# Prerequisite: run 3W_CLUS first, as it generate various objects used here.
 #
 # Required external files:
 #   EXT/ne_10m/                            (includes various shape and associated files for creating maps)
@@ -12,12 +12,12 @@
 #   EXT/HBC_stations.csv                   (HBC stations sampled in this and previous studies)
 #
 # Outputs:
-#   OUT/6_MAPS/wk_maps.png                        (faceted cluster map)
-#   OUT/6_MAPS/HBC_station_map.png                (map of stations sampled in HBC)
-#   OUT/6_MAPS/diatoms_surface.png                (surface diatom map)
-#   OUT/6_MAPS/dinos_surface.png                  (surface dinoflagellate map)
-#   OUT/6_MAPS/algae_surface.png                  (surface non‑diatom algae map)
-#   OUT/6_MAPS/cyano_surface.png                  (surface cyanobacteria map)
+#   OUT/6W_MAPS/wk_maps.png                        (faceted cluster map)
+#   OUT/6W_MAPS/HBC_station_map.png                (map of stations sampled in HBC)
+#   OUT/6W_MAPS/diatoms_surface.png                (surface diatom map)
+#   OUT/6W_MAPS/dinos_surface.png                  (surface dinoflagellate map)
+#   OUT/6W_MAPS/algae_surface.png                  (surface non‑diatom algae map)
+#   OUT/6W_MAPS/cyano_surface.png                  (surface cyanobacteria map)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
@@ -36,7 +36,7 @@ library(dunn.test) # Dunn's test
 # Divide samples by year and depth groups for plotting
 
 set.seed(161193)   # reproducible jitter offsets for overlapping points: 0.1 degrees aka ~10 km is necessary to see all overlapping points
-meta_grouped <- meta.wk.small %>% rownames_to_column("Sample") %>%
+meta_grouped <- meta.wk %>% rownames_to_column("Sample") %>%
   mutate(`Longitude [deg]` = as.numeric(`Longitude [deg]`), `Latitude [deg]` = as.numeric(`Latitude [deg]`),
          Depth_group = case_when(`Depth [m]` >= 1 & `Depth [m]` <= 6 ~ "Surface (1-6 m)",
                                  `Depth [m]` >= 9.7 & `Depth [m]` <= 75 ~ "Subsurface (10-75 m)"),
@@ -165,11 +165,11 @@ p_maps <- ggplot() +
         legend.key.width = unit(1.6, "cm"), legend.box = "vertical",
         legend.box.just = "center", legend.spacing.y = unit(1, "cm"))
 
-# cairo_pdf("OUT/6_MAPS/wk_maps.pdf", width = 23, height = 16)
+# cairo_pdf("OUT/6W_MAPS/wk_maps.pdf", width = 23, height = 16)
 # print(p_maps)
 # dev.off()
 
-png("OUT/6_MAPS/wk_maps.png", width = 23, height = 16, units = "in", res = 300)
+png("OUT/6W_MAPS/wk_maps.png", width = 23, height = 16, units = "in", res = 300)
 print(p_maps)
 dev.off()
 
@@ -195,7 +195,7 @@ period <- c("2017-07" = "July 2017",
 
 # Published and current stations
 hb <- bind_rows(read.csv("EXT/HBC_stations.csv") %>% transmute(Date = as.Date(Date), eDNA, Latitude, Longitude),
-                meta.wk.small %>% transmute(Date = as.Date(paste(Year, Month, Day, sep = "-")), eDNA = "All organisms",
+                meta.wk %>% transmute(Date = as.Date(paste(Year, Month, Day, sep = "-")), eDNA = "All organisms",
                                             Latitude = `Latitude [deg]`, Longitude = `Longitude [deg]`)) %>%
   mutate(Sampling = period[format(Date, "%Y-%m")], lon0 = round(Longitude, 4), lat0 = round(Latitude, 4))
 
@@ -345,7 +345,7 @@ p_hb <- ggplot() +
   inset_element(p_inset, left = 0.005, bottom = 0.03, right = 0.305,  top = 0.275, align_to = "panel") +
   inset_element(legend_panel, left = 0.56, bottom = 0.001, right = 0.999, top = 0.36, align_to = "panel")
 
-ggsave("OUT/6_MAPS/HBC_station_map.png", p_hb, width = 15.2, height = 12, dpi = 300, bg = "white")
+ggsave("OUT/6W_MAPS/HBC_station_map.png", p_hb, width = 15.2, height = 12, dpi = 300, bg = "white")
 
 
 ####################################################################
@@ -441,8 +441,8 @@ plot_group <- function(data, group_col, colors, title, filename, max_size, upper
   fig <- ((p_map_2022 | plot_spacer() | p_map_2023 | plot_spacer() | p_ts) +
             plot_layout(widths = c(1, 0.05, 1, 0.06, 1.05), guides = "collect")) & legend_theme
   
-  # ggsave(paste0("OUT/6_MAPS/", filename, ".pdf"), fig, width = 24, height = 7.5, device = cairo_pdf, bg = "white")
-  ggsave(paste0("OUT/6_MAPS/", filename, ".png"), fig, width = 24, height = 7.5, dpi = 300, bg = "white")
+  # ggsave(paste0("OUT/6W_MAPS/", filename, ".pdf"), fig, width = 24, height = 7.5, device = cairo_pdf, bg = "white")
+  ggsave(paste0("OUT/6W_MAPS/", filename, ".png"), fig, width = 24, height = 7.5, dpi = 300, bg = "white")
 }
 
 # ============================================================
@@ -463,12 +463,12 @@ groups <- list(
        max_size = 15 * sqrt(55 / 35), lim = 55, breaks = c(1, 5, 25, 55), labels = c("1%", "5%", "25%", "55%")))
 
 for (g in groups) {
-  d <- proptab.small.taxan.saman %>% as_tibble(rownames = "Sample") %>%
+  d <- proptab.wk %>% as_tibble(rownames = "Sample") %>%
     pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
     mutate(Genus = sapply(strsplit(ASV, "; "), `[`, 4)) %>%
     filter(Genus %in% g$genera) %>% group_by(Sample, Genus) %>%
     summarise(RelAb = sum(RelAb), .groups = "drop") %>%
-    left_join(meta.wk.small %>% rownames_to_column("Sample") %>%
+    left_join(meta.wk %>% rownames_to_column("Sample") %>%
                 mutate(Depth_group = ifelse(`Depth [m]` >= 1 & `Depth [m]` <= 6, "Surface", NA)), by = "Sample") %>%
     filter(!is.na(Depth_group), RelAb > 0) %>%
     mutate(RelAb = RelAb * 100, Genus = factor(Genus, levels = g$genera), Year = as.numeric(Year))
@@ -485,9 +485,9 @@ target_asvs <- c("Bacteria; Cyanobacteriota; Synechococcales; Synechococcus CC99
 cols <- setNames(c("red2", "green3", "#8F00FF"), target_asvs)
 cyano_labels <- str_replace(target_asvs, "^.*; (.*); (ASV_\\d+)$", "\\1 (\\2)")
 
-d <- proptab.small.taxan.saman[, target_asvs] %>% as_tibble(rownames = "Sample") %>%
+d <- proptab.wk[, target_asvs] %>% as_tibble(rownames = "Sample") %>%
   pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
-  left_join(meta.wk.small %>% rownames_to_column("Sample") %>%
+  left_join(meta.wk %>% rownames_to_column("Sample") %>%
               mutate(Depth_group = ifelse(`Depth [m]` >= 1 & `Depth [m]` <= 6, "Surface", NA)), by = "Sample") %>%
   filter(!is.na(Depth_group), RelAb > 0) %>%
   mutate(ASV = factor(ASV, levels = target_asvs), RelAb = RelAb * 100, Year = as.numeric(Year))
@@ -498,8 +498,8 @@ plot_group(d, "ASV", cols, "Cyanobacteria", "cyano_surface",
  
 # # Explore: at what T or S does a certain ASV reach max RelAb? what is the distribution?
 # ASV = "ASV_17"
-# meta.wk.small %>% rownames_to_column("Sample") %>% filter(`Depth [m]` %in% 1:6) %>%
-#   left_join(proptab.small.taxan.saman %>% as.data.frame() %>% rownames_to_column("Sample") %>%
+# meta.wk %>% rownames_to_column("Sample") %>% filter(`Depth [m]` %in% 1:6) %>%
+#   left_join(proptab.wk %>% as.data.frame() %>% rownames_to_column("Sample") %>%
 #               select(Sample, asv = matches(paste0(ASV, "(\\D|$)"))), by = "Sample") %>%
 #   {
 #     # occurrence range (all surface samples with RelAb > 0)
@@ -518,4 +518,3 @@ plot_group(d, "ASV", cols, "Cyanobacteria", "cyano_surface",
 #     plot(pos$asv, pos$`Temperature [deg C]`, xlab = ASV, ylab = "Temperature (°C)", log = "x")
 #     plot(pos$asv, pos$`Salinity`, xlab = ASV, ylab = "Salinity", log = "x")
 #     par(mfrow = c(1, 1))}
-

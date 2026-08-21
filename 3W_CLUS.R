@@ -1,4 +1,4 @@
-# 3------------------------------------------------------------------------ [can be run as is w/out running 1_META and 2_TAX first]
+# 3------------------------------------------------------------------------ [can be run as is w/out running 1W_META and 2W_TAX first]
 # Purpose:
 #   Cluster samples based on taxonomic composition (RelAb of non-rare ASVs), and identify bioindicators of clusters and cosmopolitans.
 #   Specifically, assess cluster stability (silhouette / bootstrap Jaccard), build a Ward‑D2 dendrogram (rotated by latitude),
@@ -6,18 +6,18 @@
 #   run TITAN for community‑level change points along salinity and latitude, and check for flowthrough contamination.
 #
 # Required external files:
-#   EXT/meta.wk.small.rds                   (cleaned up metadata; can also produce by running 1_META and 2_TAX)
-#   EXT/proptab.small.taxan.saman.rds       (cleaned up ASV table; can also produce by running 1_META and 2_TAX)
+#   EXT/meta.wk.rds                   (cleaned up metadata; can also produce by running 1W_META and 2W_TAX)
+#   EXT/proptab.wk.rds       (cleaned up ASV table; can also produce by running 1W_META and 2W_TAX)
 #   EXT/indicator_res.rds                   (can reproduce using commented code)
 #   EXT/titan_offshore_surface_salinity.rds (can reproduce using commented code)
-#   EXT/titan_offshore_surface_lat.rds      (can reproduce using commented code)
+#   EXT/titan_offshore_surface_latitude.rds      (can reproduce using commented code)
 #
 # Outputs:
-#   OUT/3_CLUS/wk_simple_hm.pdf                           (diagnostic heatmap)
-#   OUT/3_CLUS/wk_complex_hm.pdf / .png                   (annotated ComplexHeatmap)
-#   OUT/3_CLUS/dendro_pure.pdf / .png                     (dendrogram with cluster labels)
-#   OUT/3_CLUS/titan_offshore_surface_lat.pdf / .csv      (TITAN output for latitude)
-#   OUT/3_CLUS/titan_offshore_surface_salinity.pdf / .csv (TITAN output for salinity)
+#   OUT/3W_CLUS/wk_simple_hm.pdf                           (diagnostic heatmap)
+#   OUT/3W_CLUS/wk_complex_hm.pdf / .png                   (annotated ComplexHeatmap)
+#   OUT/3W_CLUS/dendro_pure.pdf / .png                     (dendrogram with cluster labels)
+#   OUT/3W_CLUS/titan_offshore_surface_latitude.pdf / .csv      (TITAN output for latitude)
+#   OUT/3W_CLUS/titan_offshore_surface_salinity.pdf / .csv (TITAN output for salinity)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
@@ -50,20 +50,20 @@ options("lifecycle_verbosity"="warning") # always get warnings if there are (not
 # -------------------------------------------------------------------------
 
 # upload cleaned up metadata and ASV table for WK samples
-meta.wk.small <- readRDS("EXT/meta.wk.small.rds")
-proptab.small.taxan.saman <- readRDS("EXT/proptab.small.taxan.saman.rds")
+meta.wk <- readRDS("EXT/meta.wk.rds")
+proptab.wk <- readRDS("EXT/proptab.wk.rds")
 
 #
 ### What does your ASV table look like in terms of data distribution? What transformation should you apply?
 # Apply one of these transformation for optimal clustering/grouping, adjust based on visual inspection of histograms and heatmaps.
 # Fourth root (^.25) and square root (^.5) transformations are more common and easier to defend.
 
-hist(as.matrix(proptab.small.taxan.saman))        # looks pretty bad
-hist(as.matrix(proptab.small.taxan.saman)^.5)     # looks better
-hist(as.matrix(proptab.small.taxan.saman)^.25)    # looks good: a lot of 0s but normal distribution to the left
-hist(as.matrix(proptab.small.taxan.saman)^.125)   # looks good - use if need more pronounced clusters
+hist(as.matrix(proptab.wk))        # looks pretty bad
+hist(as.matrix(proptab.wk)^.5)     # looks better
+hist(as.matrix(proptab.wk)^.25)    # looks good: a lot of 0s but normal distribution to the left
+hist(as.matrix(proptab.wk)^.125)   # looks good - use if need more pronounced clusters
 
-proptab.trans <- as.matrix(proptab.small.taxan.saman)^.25  # transformed ASV table for grouping: row/col order is the same
+proptab.trans <- as.matrix(proptab.wk)^.25  # transformed ASV table for grouping: row/col order is the same
 
 
 ############################################
@@ -131,7 +131,7 @@ dend_col <- as.dendrogram(tree_col)
 # The negative sign places branches with higher mean latitude earlier in the leaf order.
 # This produces a north-to-south tendency based on actual latitude values, but does not guarantee a monotonic leaf order.
 # Only entire sister subtrees are flipped; the dendrogram topology, branch heights and cluster memberships are unchanged.
-# dend_row_order <- reorder(dend_row, wts=(-meta.wk.small$`Latitude [deg]`), agglo.FUN = mean)
+# dend_row_order <- reorder(dend_row, wts=(-meta.wk$`Latitude [deg]`), agglo.FUN = mean)
 
 # rotate() rotation
 # First, list the samples in the desired north-to-south order.
@@ -140,7 +140,7 @@ dend_col <- as.dendrogram(tree_col)
 # Like reorder(), it does not change branch heights, clustering topology, or cluster membership.
 # While reorder() places sister branches according to their average latitude,
 # rotate() directly attempts to reproduce the requested order, which more closely matches my stated visual objective.
-ord_row <- rownames(meta.wk.small)[order(meta.wk.small$`Latitude [deg]`, decreasing = TRUE)] # sample names ordered from high to low latitude
+ord_row <- rownames(meta.wk)[order(meta.wk$`Latitude [deg]`, decreasing = TRUE)] # sample names ordered from high to low latitude
 dend_row_order <- dendextend::rotate(dend_row, ord_row)                # make the dendrogram appear in a SIMILAR order by “rotating” branches
 
 # Visual top-to-bottom sample order after rotation
@@ -160,7 +160,7 @@ cluster_palette <- colorRampPalette(c("darkviolet", "magenta2", "darkgoldenrod",
 names(cluster_palette) <- levels(clus)
 
 dend_row_order <- dend_row_order %>% color_branches(k = k, col = cluster_palette) %>% set("branches_lwd", 3)
-meta.wk.small$Cluster <- clus[rownames(meta.wk.small)]
+meta.wk$Cluster <- clus[rownames(meta.wk)]
 
 
 #####################################################
@@ -168,14 +168,14 @@ meta.wk.small$Cluster <- clus[rownames(meta.wk.small)]
 #####################################################
 
 # ASVs can be ordered based on the mean latitude among the samples where they occur.
-# taxon_latitude_pa <- apply(proptab.trans > 0, 2, \(x) mean(meta.wk.small$`Latitude [deg]`[x]))
+# taxon_latitude_pa <- apply(proptab.trans > 0, 2, \(x) mean(meta.wk$`Latitude [deg]`[x]))
 
 # However, it is better to order ASVs based on the mean sample latitude weighted by fourth-root-transformed ASV abundance.
 # Samples in which the ASV is more abundant contribute more strongly to its display-order latitude.
 # apply(proptab.trans, 2, …) - take each column (taxon's RelAb in different samples) and transfer to the function as x
 # weighted.mean(y, w=x) computes sum(y*w)/sum(w) aka multiply Lat of each sample by the RelAb of the taxon in that sample ->
 # sum it -> divide  by the sum of RelAb of the taxon
-taxon_latitude <- apply(proptab.trans, 2, \(x) weighted.mean(meta.wk.small$`Latitude [deg]`, w = x))
+taxon_latitude <- apply(proptab.trans, 2, \(x) weighted.mean(meta.wk$`Latitude [deg]`, w = x))
 
 # Now, let's proceed with rotating branches to follow the desired order.
 
@@ -204,7 +204,7 @@ col_ordered <- colnames(proptab.trans)[order.dendrogram(dend_col_order)]
 ### Diagnostic heatmap ###
 ##########################
 
-pdf("OUT/3_CLUS/wk_simple_hm.pdf", width = 35, height = 20)
+pdf("OUT/3W_CLUS/wk_simple_hm.pdf", width = 35, height = 20)
 heatmap.2(proptab.trans, Rowv = dend_row_order, Colv = dend_col_order, trace = "none", key = FALSE,
           margins = c(20, 30), col = viridis(256),
           RowSideColors = unname(cluster_palette[as.character(clus[rownames(proptab.trans)])]))
@@ -215,10 +215,10 @@ dev.off()
 ### Indicator taxa analysis ###
 ###############################
 
-# Use meta.wk.small$Cluster because its sample names align with proptab.small.taxan.saman
+# Use meta.wk$Cluster because its sample names align with proptab.wk
 # Run on untransformed relative abundances, allow single clusters and cluster pairs, and save the result for later sessions.
 # set.seed(161193)
-# indicator_res <- multipatt(proptab.small.taxan.saman, meta.wk.small$Cluster, func = "IndVal.g",
+# indicator_res <- multipatt(proptab.wk, meta.wk$Cluster, func = "IndVal.g",
 #                            duleg = FALSE, # If TRUE, Cluster combos aren't considered, only the original Clusters (1 to k, Dufrêne & Legendre, 1997)
 #                            max.order = 2, control = how(nperm = 999))
 # write_rds(indicator_res, "EXT/indicator_res.rds")       # 9 clusters w/ pairs; takes 5 min to run
@@ -236,7 +236,7 @@ indicator_res <- read_rds("EXT/indicator_res.rds")
 #
 # # $sign gives some important values: s.1, ... - group preferred by each ASV; index - cluster comb-n; stat - sq.root(IndVal); p.value - sign-ce of stat
 # indicator_res$sign
-# plot(colMeans(proptab.small.taxan.saman), indicator_res$sign$stat, log = 'xy') # for each ASV, plot Mean RelAb (cols = ASVs) vs stat (same order of ASVs)
+# plot(colMeans(proptab.wk), indicator_res$sign$stat, log = 'xy') # for each ASV, plot Mean RelAb (cols = ASVs) vs stat (same order of ASVs)
 #
 # # The permutation test shuffles the group labels 999 times across samples while holding ASV abundances fixed. It tests if the microbe-group link is real.
 # # A p-value <0.01 means that there is <1% chance that the link happened by accident. 
@@ -260,8 +260,8 @@ chosen_group[valid] <- cn[idx[valid]]
 
 # For pair-associated indicators, assign the ASV for display and interpretation to the member cluster with the highest mean relative abundance.
 single_cols <- cn[!str_detect(cn, "[-+]")]
-sample_cluster <- as.character(meta.wk.small$Cluster[match(rownames(proptab.small.taxan.saman), rownames(meta.wk.small))])
-mean_rel_ab <- sapply(single_cols, \(g) colMeans(proptab.small.taxan.saman[sample_cluster == g, , drop = FALSE], na.rm = TRUE))
+sample_cluster <- as.character(meta.wk$Cluster[match(rownames(proptab.wk), rownames(meta.wk))])
+mean_rel_ab <- sapply(single_cols, \(g) colMeans(proptab.wk[sample_cluster == g, , drop = FALSE], na.rm = TRUE))
 
 chosen_cluster <- map2_chr(chosen_group, rn, \(group, asv) {
   if (is.na(group) || !str_detect(group, "[-+]")) return(group)
@@ -271,8 +271,8 @@ chosen_cluster <- map2_chr(chosen_group, rn, \(group, asv) {
 }) %>% set_names(rn)
 
 thr_euk_indic <- 0.015; thr_prok_indic <- 0.015
-proptab.indic <- proptab.small.taxan.saman[, specific_asvs, drop = FALSE]
-proptab.not.indic <- proptab.small.taxan.saman[, setdiff(colnames(proptab.small.taxan.saman), specific_asvs), drop = FALSE]
+proptab.indic <- proptab.wk[, specific_asvs, drop = FALSE]
+proptab.not.indic <- proptab.wk[, setdiff(colnames(proptab.wk), specific_asvs), drop = FALSE]
 
 # Cosmopolitans are non-indicator ASVs present in at least 60% of samples in every non-riverine cluster.
 cosmo_prev_cutoff <- 0.6
@@ -286,8 +286,8 @@ cosmo_asvs <- colnames(prev_by_clus)[colSums(prev_by_clus[nonriver_clus, , drop 
 proptab.cosmo <- proptab.not.indic[, cosmo_asvs, drop = FALSE]
 
 keep_asvs <- union(specific_asvs, cosmo_asvs)
-proptab.indic.cosmo <- proptab.small.taxan.saman[, keep_asvs, drop = FALSE]
-proptab.not.indic.cosmo <- proptab.small.taxan.saman[, setdiff(colnames(proptab.small.taxan.saman), keep_asvs), drop = FALSE]
+proptab.indic.cosmo <- proptab.wk[, keep_asvs, drop = FALSE]
+proptab.not.indic.cosmo <- proptab.wk[, setdiff(colnames(proptab.wk), keep_asvs), drop = FALSE]
 
 
 ################################
@@ -318,7 +318,7 @@ tax_for_sel <- tibble(ASV = colnames(proptab.indic.cosmo)) %>%
   mutate(Domain = map_chr(str_split(clean_tax(ASV), ";\\s*"), 1),
          Domain2 = if_else(Domain %in% c("Bacteria", "Archaea"), "Prokaryote", "Eukaryote"))
 
-samp_clus <- meta.wk.small %>% rownames_to_column("Sample") %>% transmute(Sample, Cluster = as.character(Cluster))
+samp_clus <- meta.wk %>% rownames_to_column("Sample") %>% transmute(Sample, Cluster = as.character(Cluster))
 
 long0 <- proptab.indic.cosmo %>% as_tibble(rownames = "Sample") %>%
   pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
@@ -346,19 +346,19 @@ draw_wk_complex_hm <- function() {
           cluster_columns = dend_col_order,
           # column_split = tax_k,
           right_annotation = rowAnnotation(
-            # bar1 = anno_points(log1p(meta.wk.small$`Distance to coast [km]`), size = unit(3, "mm"), width = unit(2.6, "cm"),
+            # bar1 = anno_points(log1p(meta.wk$`Distance to coast [km]`), size = unit(3, "mm"), width = unit(2.6, "cm"),
             #                    axis_param = list(at = log1p(c(0, 25, 250)), labels = c(0, 25, 250), labels_rot = 0, gp = gpar(fontsize = 10))),
-            # bar2 = anno_points(log10(meta.wk.small$`Depth [m]`), size = unit(3, "mm"), width = unit(2.6, "cm"),
+            # bar2 = anno_points(log10(meta.wk$`Depth [m]`), size = unit(3, "mm"), width = unit(2.6, "cm"),
             #                    axis_param = list(at = log10(c(1, 10, 75)), labels = c(1, 10, 75), labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar1 = anno_points(meta.wk.small$`Temperature [deg C]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar1 = anno_points(meta.wk$`Temperature [deg C]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar2 = anno_points(meta.wk.small$`Salinity`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar2 = anno_points(meta.wk$`Salinity`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar3 = anno_points(meta.wk.small$`Chlorophyll-a Fluorescence [mg/m^3]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar3 = anno_points(meta.wk$`Chlorophyll-a fluorescence [mg/m^3]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar4 = anno_points(meta.wk.small$`CDOM Fluorescence [mg/m^3]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar4 = anno_points(meta.wk$`CDOM fluorescence [mg/m^3]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
-            bar5 = anno_points(meta.wk.small$`Beam Attenuation [1/m]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
+            bar5 = anno_points(meta.wk$`Beam attenuation [1/m]`, size = unit(3, "mm"), width = unit(2.6, "cm"),
                                axis_param = list(labels_rot = 0, gp = gpar(fontsize = 10))),
             gap = unit(3, "mm"), show_annotation_name = FALSE),
           
@@ -459,11 +459,11 @@ draw_wk_complex_hm <- function() {
   }
 }
 
-cairo_pdf(file = "OUT/3_CLUS/wk_complex_hm.pdf", width = 31, height = 17)
+cairo_pdf(file = "OUT/3W_CLUS/wk_complex_hm.pdf", width = 31, height = 17)
 draw_wk_complex_hm()
 dev.off()
 
-png("OUT/3_CLUS/wk_complex_hm.png", width = 31, height = 17, units = "in", res = 300, type = "cairo")
+png("OUT/3W_CLUS/wk_complex_hm.png", width = 31, height = 17, units = "in", res = 300, type = "cairo")
 draw_wk_complex_hm()                       # calls the function which includes all decorations
 dev.off()
 
@@ -493,11 +493,11 @@ ht <- Heatmap(empty_mat,
               row_dend_width = unit(10, "cm"),
               row_names_gp = gpar(fontsize = 20, fontface = "bold"))
 
-cairo_pdf(file = "OUT/3_CLUS/dendro_pure.pdf", width = 12, height = 24)
+cairo_pdf(file = "OUT/3W_CLUS/dendro_pure.pdf", width = 12, height = 24)
 draw(ht)
 dev.off()
 
-png("OUT/3_CLUS/dendro_pure.png", width = 12, height = 24, units = "in", res = 300)
+png("OUT/3W_CLUS/dendro_pure.png", width = 12, height = 24, units = "in", res = 300)
 draw(ht)
 dev.off()
 
@@ -507,12 +507,12 @@ dev.off()
 #############
 
 # Offshore surface samples and ASVs occurring in at least three of them.
-off_surf <- meta.wk.small %>% rownames_to_column("Sample") %>% filter(`Distance to coast [km]` > 10, between(`Depth [m]`, 1, 5))
-txa_off_surf <- proptab.small.taxan.saman[off_surf$Sample, , drop = FALSE] %>% .[, colSums(. > 0) >= 3, drop = FALSE]
+off_surf <- meta.wk %>% rownames_to_column("Sample") %>% filter(`Distance to coast [km]` > 10, between(`Depth [m]`, 1, 5))
+txa_off_surf <- proptab.wk[off_surf$Sample, , drop = FALSE] %>% .[, colSums(. > 0) >= 3, drop = FALSE]
 subset_titan <- function(ti, keep) { ti$sppmax <- ti$sppmax[keep, , drop = FALSE]; ti$taxa <- ti$taxa[, keep, drop = FALSE]; ti }
 
 # Environmental gradients analyzed with the same workflow.
-titan_specs <- c(salinity = "Salinity", lat = "Latitude [deg]")
+titan_specs <- c(salinity = "Salinity", latitude = "Latitude [deg]")
 titan_results <- list()
 
 for (nm in names(titan_specs)) {
@@ -541,7 +541,7 @@ for (nm in names(titan_specs)) {
   # PDF: top panel shows the bootstrap distributions of community-level negative and positive change points;
   # Lower panels show taxon-specific change-point distributions for eukaryotic and prokaryotic bioindicator ASVs
   # retained in asv_in_dotplot and having a TITAN z-score >=5 (blue = decreasing; red = increasing along the gradient).
-  pdf(paste0("OUT/3_CLUS/titan_offshore_surface_", nm, ".pdf"), width = 12, height = 24)
+  pdf(paste0("OUT/3W_CLUS/titan_offshore_surface_", nm, ".pdf"), width = 12, height = 24)
   print(p_dens / p_euk / p_prok)
   dev.off()
   
@@ -549,7 +549,7 @@ for (nm in names(titan_specs)) {
   # and using only taxa with "pure" and "reliable" bootstrap responses (fsumz-/fsumz+).
   # "pure": the taxon consistently responds in the same direction across bootstraps;
   # "reliable": its response is repeatedly statistically supported across bootstraps.
-  write.csv(ti$sumz.cp, paste0("OUT/3_CLUS/titan_offshore_surface_", nm, ".csv"))
+  write.csv(ti$sumz.cp, paste0("OUT/3W_CLUS/titan_offshore_surface_", nm, ".csv"))
 }
 
 

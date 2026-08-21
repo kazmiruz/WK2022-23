@@ -3,10 +3,10 @@
 #   Pipeline to display the most prominent bioindicators and cosmopolitans.
 #   Build the indicator/cosmopolitan dot‑plot with dendrogram, total reads, station labels, similar to the ComplexHeatmap.
 #
-# Prerequisite: run 2_TAX, 3_CLUS, and 4_PLANKT first, as they generate various objects used here.
+# Prerequisite: run 2W_TAX, 3W_CLUS, and 4W_PLANKT first, as they generate various objects used here.
 #
 # Outputs:
-#   OUT/5_INDIC/dot_ASV_indic_cosmo2.pdf / .png
+#   OUT/5W_INDIC/dot_ASV_indic_cosmo2.pdf / .png
 # -------------------------------------------------------------------------
 
 # ========================= # Libraries # =========================
@@ -247,7 +247,7 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
   
   # --- ASV inclusion based on mean RelAb within affinity clusters (cosmo = all samples) ---
   aff_map <- indic_asv_tbl %>% transmute(ASV, Aff = as.character(Clusters))
-  samp_clus <- meta.wk.small %>% rownames_to_column("Sample") %>% transmute(Sample, Cluster = as.character(Cluster))
+  samp_clus <- meta.wk %>% rownames_to_column("Sample") %>% transmute(Sample, Cluster = as.character(Cluster))
   
   # Long table ONLY for computing the mean used for filtering
   long_sel <- proptab %>% as_tibble(rownames = "Sample") %>%
@@ -273,7 +273,7 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
   dat_all <- proptab %>% as_tibble(rownames = "Sample") %>%
     pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
     left_join(all_asvs_tax %>% select(ASV, Domain2, Group), by = "ASV") %>%
-    left_join(meta.wk.small %>% rownames_to_column("Sample") %>%
+    left_join(meta.wk %>% rownames_to_column("Sample") %>%
                 transmute(Sample, Cluster = as.character(Cluster)), by = "Sample") %>%
     mutate(Genus = str_extract(ASV, "(?<=; )[^;]*(?=; ASV_\\d+$)")) %>%
     semi_join(asv_selection, by = c("ASV", "Domain2"))
@@ -295,7 +295,7 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
   
   # Build idx_lut: get positions from dendrogram, then join with cluster from metadata
   idx_lut <- tibble(Sample = dd$labels$label, ix = max(dd$labels$x) + 1 - dd$labels$x) %>%
-    left_join(meta.wk.small %>% rownames_to_column("Sample") %>% select(Sample, Cluster), by = "Sample")
+    left_join(meta.wk %>% rownames_to_column("Sample") %>% select(Sample, Cluster), by = "Sample")
   
   dat_all <- dat_all %>% left_join(idx_lut, by = "Sample") %>% mutate(label = paste0(Genus, " (", str_extract(ASV, "ASV_\\d+$"), ")"))
   dat_plot <- dat_plot %>% left_join(idx_lut, by = "Sample") %>% mutate(label = paste0(Genus, " (", str_extract(ASV, "ASV_\\d+$"), ")"))
@@ -319,7 +319,7 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
   
   # Total Reads (stacked bars)
   bar_wide <- idx_lut %>% mutate(Sample_key = normalize_sample(Sample)) %>%
-    left_join(meta.wk.small %>% rownames_to_column("Sample") %>% mutate(Sample_key = normalize_sample(Sample)) %>%
+    left_join(meta.wk %>% rownames_to_column("Sample") %>% mutate(Sample_key = normalize_sample(Sample)) %>%
                 select(Sample_key, `Eukaryotic Reads`, `Prokaryotic Reads`), by = "Sample_key") %>%
     mutate(`Eukaryotic Reads` = as.numeric(coalesce(`Eukaryotic Reads`, 0)),
            `Prokaryotic Reads` = as.numeric(coalesce(`Prokaryotic Reads`, 0)),
@@ -367,7 +367,7 @@ build_main_row <- function(proptab, thr_euk, thr_prok) {
   p_tree <- add_bottom_margin(p_tree)
   
   # Side-panels
-  panel_df <- idx_lut %>% left_join(meta.wk.small %>% rownames_to_column("Sample") %>%
+  panel_df <- idx_lut %>% left_join(meta.wk %>% rownames_to_column("Sample") %>%
                                       select(Sample, Yr = Year, Stn = Station,
                                              # `C (km)` = `Distance to coast [km]`,
                                              `D (m)` = `Depth [m]` 
@@ -440,8 +440,8 @@ prok_phyla_used      <- row_indic$prok_phyla_used
 legend_plot <- create_clean_legend_with_dots()
 final_indic <- row_indic$plot_row / plot_spacer() / legend_plot + plot_layout(heights = c(10, LEGEND_GAP_HT, 1)) +
   plot_annotation(theme = theme(plot.margin = margin(0, 0, 0, 0)))
-save_plot(final_indic, "OUT/5_INDIC/dot_ASV_indic_cosmo2.pdf", width_inches, height_inches, res_dpi)
-save_plot(final_indic, "OUT/5_INDIC/dot_ASV_indic_cosmo2.png", width_inches, height_inches, res_dpi)
+save_plot(final_indic, "OUT/5W_INDIC/dot_ASV_indic_cosmo2.pdf", width_inches, height_inches, res_dpi)
+save_plot(final_indic, "OUT/5W_INDIC/dot_ASV_indic_cosmo2.png", width_inches, height_inches, res_dpi)
 
 # # --- NON-INDIC & NON-COSMO ---
 # row_not_indic <- build_main_row(proptab.not.indic.cosmo, thr_euk = thr_euk_not_indic, thr_prok = thr_prok_not_indic)
@@ -452,5 +452,5 @@ save_plot(final_indic, "OUT/5_INDIC/dot_ASV_indic_cosmo2.png", width_inches, hei
 # legend_plot <- create_clean_legend_with_dots()
 # final_not_indic <- row_not_indic$plot_row / plot_spacer() / legend_plot + plot_layout(heights = c(10, LEGEND_GAP_HT, 1)) +
 #   plot_annotation(theme = theme(plot.margin = margin(0, 0, 0, 0)))
-# save_plot(final_not_indic, "OUT/5_INDIC/dot_ASV_not_indic_or_cosmo2.pdf", width_inches, height_inches, res_dpi)
+# save_plot(final_not_indic, "OUT/5W_INDIC/dot_ASV_not_indic_or_cosmo2.pdf", width_inches, height_inches, res_dpi)
 

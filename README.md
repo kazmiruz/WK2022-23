@@ -4,7 +4,7 @@ README — WK2022-23 analysis pipeline
 Overview
 --------
 This repository contains the analysis pipeline used for the WK2022 and WK2023 Hudson/James Bay microbial community study.
-The input files required to run the scripts and the resulting output files can be downloaded either at https://osf.io/r32sy or
+The input files required to run the scripts and the resulting output files can be downloaded either at https://osf.io/r32sy or
 https://drive.google.com/drive/folders/19EClHmGsUfJGh99jsMc8_6NDhdeQkEp2.
 
 The scripts assemble metadata and environmental data, clean and classify 16S/18S ASVs, identify plankton communities,
@@ -14,15 +14,15 @@ elucidate the environments favoured by the plankton communities, produce publica
 Repository structure and its purpose
 ------------------------------------
 Provided here on GitHub:
-- 1_META.R        — compiling and cleaning oceanographic and other metadata for all DNA samples,
+- 1W_META.R        — compiling and cleaning oceanographic and other metadata for all DNA samples,
                     and computing derived variables (MLD, distance to coast)
-- 2_TAX.R         — cleaning 16S taxonomy (SILVA), BLASTing 18S against PR2, selecting and organizing samples that have both 16S and 18S,
+- 2W_TAX.R         — cleaning 16S taxonomy (SILVA), BLASTing 18S against PR2, selecting and organizing samples that have both 16S and 18S,
                     and building combined ASV table for non-rare taxa
-- 3_CLUS.R        — clustering, identification of indicator taxa (indicspecies), heatmaps, TITAN
-- 4_PLANKT.R      — Shannon diversity, and major taxonomic groups
-- 5_INDIC.R       — bioindicators and cosmopolitans
-- 6_MAPS.R        — maps: cluster map for this study, comparison to previous studies, biogeography of primary producers at surface
-- 7_ENV.R         — dbRDA and environment statistics, MIMARKS & SRA outputs
+- 3W_CLUS.R        — clustering, identification of indicator taxa (indicspecies), heatmaps, TITAN
+- 4W_PLANKT.R      — Shannon diversity, and major taxonomic groups
+- 5W_INDIC.R       — bioindicators and cosmopolitans
+- 6W_MAPS.R        — maps: cluster map for this study, comparison to previous studies, biogeography of primary producers at surface
+- 7W_ENV.R         — dbRDA and environment statistics, MIMARKS & SRA outputs
 
 Provided at https://osf.io/r32sy and https://drive.google.com/drive/folders/19EClHmGsUfJGh99jsMc8_6NDhdeQkEp2:
 - CTD/            — input: raw oceanographic data from instruments (CTD, TSG, CastAway)

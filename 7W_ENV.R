@@ -3,22 +3,22 @@
 #   This last script generally assesses how environmental parameters drive the composition and diversity of microbial communities.
 #   Perform distance‑based redundancy analysis (db‑RDA) on the fourth‑root transformed Bray‑Curtis dissimilarities
 #   to resolve the influence of depth, distance to coast, temperature, and salinity on plankton community structure.
-#   Produce a 2‑panel ordination plot (dbRDA1 vs dB-RDA2 and dbRDA3 vs dbRDA2), a 3‑D interactive plot, an ANOVA table,
+#   Produce a 2‑panel ordination plot (dbRDA1 vs dbRDA2 and dbRDA3 vs dbRDA2), a 3‑D interactive plot, an ANOVA table,
 #   and a multi‑page diagnostic PDF with sample points sized by various environmental parameters.
-#   Plot T‑S-D and fChl-a‑fCDOM-Attenuation bubble plots, and produce tables comparing environments between clusters.
+#   Plot T‑S-D and fChl-a‑fCDOM-attenuation bubble plots, and produce tables comparing environments between clusters.
 #   Put together MIMARKS and SRA tables for NCBI submission.
 #
-# Prerequisite: run 2_TAX, 3_CLUS, 4_PLANKT, and 6_MAPS first, as they generate various objects used here.
+# Prerequisite: run 2W_TAX, 3W_CLUS, 4W_PLANKT, and 6W_MAPS first, as they generate various objects used here.
 #
 # Outputs:
-#   OUT/7_ENV/wk_dbRDA_many.pdf                                (multi‑page diagnostic, each environmental variable)
-#   OUT/7_ENV/wk_dbRDA.pdf / .png                              (2‑panel ordination)
-#   OUT/7_ENV/wk_dbRDA_3d.html                                 (interactive 3‑D plot)
-#   OUT/7_ENV/wk_ts.pdf / .png                                 (T‑S-D bubble plot)
-#   OUT/7_ENV/wk_fc.pdf / .png                                 (fChl-a‑fCDOM-Attenuation bubble plot)
-#   OUT/7_ENV/Environmental_statistics.xlsx                    (env properties of clusters and statistically sign-t diff-ces btwn them)
-#   OUT/7_ENV/NCBI_submission/WK_MIMARKS.survey.water.6.0.csv  (MIMARKS table for NCBI)
-#   OUT/7_ENV/NCBI_submission/WK_SRA_metadata.csv              (SRA table for NCBI)
+#   OUT/7W_ENV/wk_dbRDA_many.pdf                                (multi‑page diagnostic, each environmental variable)
+#   OUT/7W_ENV/wk_dbRDA.pdf / .png                              (2‑panel ordination)
+#   OUT/7W_ENV/wk_dbRDA_3d.html                                 (interactive 3‑D plot)
+#   OUT/7W_ENV/wk_ts.pdf / .png                                 (T‑S-D bubble plot)
+#   OUT/7W_ENV/wk_fc.pdf / .png                                 (fChl-a‑fCDOM-attenuation bubble plot)
+#   OUT/7W_ENV/Environmental_statistics.xlsx                    (env properties of clusters and statistically sign-t diff-ces btwn them)
+#   OUT/7W_ENV/NCBI_submission/WK_MIMARKS.survey.water.6.0.csv  (MIMARKS table for NCBI)
+#   OUT/7W_ENV/NCBI_submission/WK_SRA_metadata.csv              (SRA table for NCBI)
 
 # -------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ library(dunn.test)
 
 #
 ## Select and transform environmental/explanatory and microbial/response data 
-metadata <- meta.wk.small        # explanatory variables
+metadata <- meta.wk        # explanatory variables
 microbial_data <- proptab.trans  # response variables (already normalized + transformed)
 
 # Select numeric environmental variables (keep spaces; drop units in names)
@@ -138,10 +138,10 @@ sc_si <- scores(rda_model, display = "sites", choices = 1:rda_model$CCA$rank) %>
 arrow_scaling_factor <- max(abs(as.matrix(sc_bp[grep("^dbRDA", names(sc_bp))])), na.rm = TRUE) * 1.7
 
 ## dbRDA plots for exploration: one page per numeric variable sized onto points
-pdf(file = "OUT/7_ENV/wk_dbRDA_many.pdf", width = 35, height = 20)
-numeric_vars <- meta.wk.small %>% select(Year, "Bot. Depth [m]", "Depth [m]", "Distance to coast [km]", "Temperature [deg C]", "Salinity",
-                                         "PAR [umol photons/m^2/sec]", "Chlorophyll-a Fluorescence [mg/m^3]", "CDOM Fluorescence [mg/m^3]",
-                                         "Oxygen [umol/kg]", "DNA [mg/L]") %>% colnames()
+pdf(file = "OUT/7W_ENV/wk_dbRDA_many.pdf", width = 35, height = 20)
+numeric_vars <- meta.wk %>% select(Year, "Bottom depth [m]", "Depth [m]", "Temperature [deg C]", "Salinity",
+                                   "Chlorophyll-a fluorescence [mg/m^3]", "CDOM fluorescence [mg/m^3]", "Beam attenuation [1/m]",
+                                   "Dissolved oxygen [uM]", "Mixed Layer Depth [m]", "Distance to coast [km]", "DNA [mg/L]") %>% colnames()
 size_range <- c(5, 30)
 
 for (param in numeric_vars) {
@@ -241,16 +241,16 @@ p2 <- ggplot(sc_si, aes(dbRDA3, dbRDA2)) +
         plot.margin = margin(20, 30, 20, 30),
         axis.title.y = element_blank())
 
-cairo_pdf("OUT/7_ENV/wk_dbRDA.pdf", width = 24, height = 13.2)
+cairo_pdf("OUT/7W_ENV/wk_dbRDA.pdf", width = 24, height = 13.2)
 gridExtra::grid.arrange(p1, p2, ncol = 2)
 dev.off()
 
-png("OUT/7_ENV/wk_dbRDA.png", width = 24, height = 13.2, units = "in", res = 300)
+png("OUT/7W_ENV/wk_dbRDA.png", width = 24, height = 13.2, units = "in", res = 300)
 gridExtra::grid.arrange(p1, p2, ncol = 2)
 dev.off() 
 
 # # save side-by-side (for Inkscape)
-# svg("OUT/7_ENV/wk_dbRDA.svg", width = 24, height = 13.2)
+# svg("OUT/7W_ENV/wk_dbRDA.svg", width = 24, height = 13.2)
 # gridExtra::grid.arrange(p1, p2, ncol = 2)
 # dev.off()
 
@@ -281,7 +281,7 @@ p3d <- plot_ly() %>% add_markers(data = sc_si, x = ~dbRDA1, y = ~dbRDA2, z = ~db
                                    tickfont = list(color="black"), range = c(-3,2)),
                       aspectmode = "data"),
          legend = list(orientation = "h"), showlegend = FALSE)
-htmlwidgets::saveWidget(p3d, "OUT/7_ENV/wk_dbRDA_3d.html", selfcontained = TRUE)
+htmlwidgets::saveWidget(p3d, "OUT/7W_ENV/wk_dbRDA_3d.html", selfcontained = TRUE)
 
 # #PCA inspection
 # # if it generally agrees w/ dbRDA, then your env. variables are doing a good job explaining the Bray-Curtis dissimilarity
@@ -326,9 +326,9 @@ p_ts <- ggplot(meta_grouped, aes(`Salinity`, `Temperature [deg C]`)) +
         plot.margin = margin(t = 18, r = 36, b = 18, l = 36),
         panel.border = element_rect(color = "black", fill = NA, linewidth = 1.2), panel.spacing = unit(0.6, "lines"))
 
-grDevices::cairo_pdf("OUT/7_ENV/wk_ts.pdf", width = 24, height = 11); print(p_ts); dev.off()
+grDevices::cairo_pdf("OUT/7W_ENV/wk_ts.pdf", width = 24, height = 11); print(p_ts); dev.off()
 
-png("OUT/7_ENV/wk_ts.png", width = 24, height = 12, units = "in", res = 300)
+png("OUT/7W_ENV/wk_ts.png", width = 24, height = 12, units = "in", res = 300)
 print(p_ts)
 dev.off()
 
@@ -337,25 +337,25 @@ dev.off()
 ### Fluo plot ###
 #################
 
-meta_grouped_FC <- meta_grouped %>% filter(!is.na(`Beam Attenuation [1/m]`))
-p_fc <- ggplot(meta_grouped_FC, aes(`CDOM Fluorescence [mg/m^3]`, `Chlorophyll-a Fluorescence [mg/m^3]`)) +
+meta_grouped_FC <- meta_grouped %>% filter(!is.na(`Beam attenuation [1/m]`))
+p_fc <- ggplot(meta_grouped_FC, aes(`CDOM fluorescence [mg/m^3]`, `Chlorophyll-a fluorescence [mg/m^3]`)) +
   scale_x_continuous(limits = c(1, 100), trans = log_trans(),  # log transformation
                      breaks = c(1, 2, 5, 10, 25, 50, 100), minor_breaks = NULL) +
   scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 11), minor_breaks = NULL) +
   geom_point(aes(color = factor(Cluster), shape = factor(Year)), fill = NA, size = 7, stroke = 2.5) +
-  geom_point(aes(color = factor(Cluster), shape = factor(Year), alpha = `Beam Attenuation [1/m]`, fill = after_scale(colour)), size = 7, stroke = 0) +
+  geom_point(aes(color = factor(Cluster), shape = factor(Year), alpha = `Beam attenuation [1/m]`, fill = after_scale(colour)), size = 7, stroke = 0) +
   scale_shape_manual(name = "Year", values = c(`2022` = 21, `2023` = 23),
                      guide = guide_legend(override.aes = list(fill = alpha("black", 0.9), color = "black", size = 7, stroke = 0))) +
   scale_color_manual(values = cluster_palette, labels = \(x) cl_labels[as.integer(x)], name = "Cluster") +
   scale_alpha_continuous(
-    name = expression(atop(textstyle(bold("Beam")), atop(textstyle(bold("Attenuation")), textstyle(bold("(m"^{-1}*")"))))), 
+    name = expression(atop(textstyle(bold("Beam")), atop(textstyle(bold("attenuation")), textstyle(bold("(m"^{-1}*")"))))), 
     range = c(0.1, 1), limits = c(0.1, 6.5), breaks = c(0.2, 0.5, 1, 3, 6.5)) + 
   guides(shape = guide_legend(order = 1),
          color = guide_legend(order = 2, override.aes = list(size = 7, shape = 21, stroke = 2.4), keyheight = unit(1.1, "cm"),
                               keywidth = unit(1.1, "cm"), default.unit = "cm", byrow = TRUE), 
          alpha = guide_legend(order = 3, override.aes = list(shape = 21, size = 7, stroke = 0, color = "black", fill = "black"))) + 
-  labs(x = expression(bold(CDOM~Fluorescence~(mg~m^{-3}))), 
-       y = expression(bold(Chlorophyll-a~Fluorescence~(mg~m^{-3})))) +
+  labs(x = expression(bold(CDOM~fluorescence~(mg~m^{-3}))), 
+       y = expression(bold(Chlorophyll-a~fluorescence~(mg~m^{-3})))) +
   # facet_grid(. ~ Year, labeller = labeller(Year = ~ paste("Year", .x))) +
   theme_minimal() +
   theme(axis.text  = element_text(size = 23, colour = "black"),
@@ -369,15 +369,15 @@ p_fc <- ggplot(meta_grouped_FC, aes(`CDOM Fluorescence [mg/m^3]`, `Chlorophyll-a
         panel.border = element_rect(color = "black", fill = NA, linewidth = 1.2),
         panel.spacing = unit(0.6, "lines"))
 
-grDevices::cairo_pdf("OUT/7_ENV/wk_fc.pdf", width = 24, height = 11); print(p_fc); dev.off()
+grDevices::cairo_pdf("OUT/7W_ENV/wk_fc.pdf", width = 24, height = 11); print(p_fc); dev.off()
 
-png("OUT/7_ENV/wk_fc.png", width = 24, height = 11, units = "in", res = 300, type = "cairo")
+png("OUT/7W_ENV/wk_fc.png", width = 24, height = 11, units = "in", res = 300, type = "cairo")
 print(p_fc)
 dev.off()
 
 # median chl a in surface waters
-# median(meta.wk.small %>% filter(`Depth [m]` <= 6) %>% .$`Chlorophyll-a Fluorescence [mg/m^3]`, na.rm = TRUE)
-# meta.wk.small %>% filter(`Depth [m]` <= 6, !is.na(`Chlorophyll-a Fluorescence [mg/m^3]`)) %>% nrow()
+# median(meta.wk %>% filter(`Depth [m]` <= 6) %>% .$`Chlorophyll-a fluorescence [mg/m^3]`, na.rm = TRUE)
+# meta.wk %>% filter(`Depth [m]` <= 6, !is.na(`Chlorophyll-a fluorescence [mg/m^3]`)) %>% nrow()
 
 
 ############################################################
@@ -387,11 +387,11 @@ dev.off()
 # Metadata columns and publication-ready headings
 env_headers <- c("Depth\n(m)" = "Depth [m]", "Distance to coast\n(km)" = "Distance to coast [km]",
                  "Temperature\n(°C)" = "Temperature [deg C]", "Salinity" = "Salinity",
-                 "fChl-a\n(mg m-3)" = "Chlorophyll-a Fluorescence [mg/m^3]", "fCDOM\n(mg m-3)" = "CDOM Fluorescence [mg/m^3]",
-                 "Beam Attenuation\n(m-1)" = "Beam Attenuation [1/m]")
+                 "fChl-a\n(mg m-3)" = "Chlorophyll-a fluorescence [mg/m^3]", "fCDOM\n(mg m-3)" = "CDOM fluorescence [mg/m^3]",
+                 "Beam attenuation\n(m-1)" = "Beam attenuation [1/m]")
 env_vars <- unname(env_headers)
 env_labels <- setNames(str_replace_all(names(env_headers), "\n", " "), env_vars)
-year_col <- if ("Year" %in% names(meta.wk.small)) "Year" else "Cruise"
+year_col <- if ("Year" %in% names(meta.wk)) "Year" else "Cruise"
 cluster_full <- c(oHB = "oHB (offshore Hudson Bay)", BI22 = "BI22 (the Belcher Islands)", cHB = "cHB (coastal Hudson Bay)",
                   dBI = "dBI (the Belcher Islands, subsurface)", dJB = "dJB (James Bay, subsurface)", EST = "EST (the Churchill and Winisk estuaries)",
                   MR = "MR (the Maquatua River)", nJB = "nJB (northern James Bay)", sJB = "sJB (southern James Bay)")
@@ -415,7 +415,7 @@ scientific_txt <- \(p) {
 
 # Check ANOVA residual normality before using non-parametric tests
 environment_fits <- set_names(lapply(env_vars, \(var) {
-  d <- meta.wk.small %>% transmute(Cluster, Value = .data[[var]]) %>% drop_na()
+  d <- meta.wk %>% transmute(Cluster, Value = .data[[var]]) %>% drop_na()
   aov(Value ~ factor(Cluster), data = d)}), env_vars)
 
 imap_dfr(environment_fits, \(m, var) tibble(Parameter = env_labels[[var]], `Shapiro p-value` = shapiro.test(residuals(m))$p.value)) %>% print()
@@ -423,14 +423,14 @@ walk2(environment_fits, names(environment_fits), ~{qqnorm(residuals(.x), main = 
 
 # Overall differences in environmental properties among clusters
 environment_kruskal <- map_dfr(env_vars, \(var) {
-  d <- meta.wk.small %>% transmute(Cluster, Value = .data[[var]]) %>% drop_na()
+  d <- meta.wk %>% transmute(Cluster, Value = .data[[var]]) %>% drop_na()
   tibble(Parameter = var, `Kruskal-Wallis p-value` = if (n_distinct(d$Cluster) < 2) NA_real_ else kruskal.test(Value ~ Cluster, data = d)$p.value)})
 kw_p <- setNames(environment_kruskal$`Kruskal-Wallis p-value`, environment_kruskal$Parameter)
 
 # Significant Dunn pairwise differences among clusters
 environment_dunn <- map_dfr(env_vars, \(var) {
   if (is.na(kw_p[[var]]) || kw_p[[var]] >= 0.05) return(tibble())
-    d <- meta.wk.small %>% transmute(Cluster = as.character(Cluster), Value = .data[[var]]) %>% drop_na()
+    d <- meta.wk %>% transmute(Cluster = as.character(Cluster), Value = .data[[var]]) %>% drop_na()
     dt <- dunn.test(d$Value, d$Cluster, method = "bh", kw = FALSE, altp = TRUE, table = FALSE, list = FALSE, interpret = FALSE)
     med <- tapply(d$Value, d$Cluster, median)
     med <- setNames(as.numeric(med), names(med))  # remove array dimension
@@ -446,7 +446,7 @@ environment_dunn <- map_dfr(env_vars, \(var) {
   mutate(`BH-adjusted p-value` = map_chr(`BH-adjusted p-value`, scientific_txt))
 
 # Publication-ready median [range] table
-environment_summary <- meta.wk.small %>% mutate(Cluster = as.character(Cluster)) %>% group_by(Cluster) %>%
+environment_summary <- meta.wk %>% mutate(Cluster = as.character(Cluster)) %>% group_by(Cluster) %>%
   summarise(Year = year_txt(.data[[year_col]]), across(all_of(env_vars), med_range_txt), .groups = "drop") %>%
   arrange(as.numeric(Cluster)) %>%
   mutate(Cluster = unname(cluster_full[cl_labels[as.numeric(Cluster)]])) %>%
@@ -472,7 +472,7 @@ addStyle(wb, 1, wrap, rows = note_row, cols = 1, stack = TRUE)
 setRowHeights(wb, 1, rows = 2, heights = 32)
 setRowHeights(wb, 1, rows = 3:(summary_end - 1), heights = 30)
 setColWidths(wb, 1, cols = 1:9, widths = c(42, 14, 16, 22, 18, 14, 18, 18, 24))
-saveWorkbook(wb, "OUT/7_ENV/Environmental_statistics.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "OUT/7W_ENV/Environmental_statistics.xlsx", overwrite = TRUE)
 
 
 ##########################################
@@ -485,7 +485,7 @@ filelist_path <- "DNA/WK_filelist.txt"
 
 fmt_num <- function(x, digits = 3) if_else(is.na(x), NA_character_, sub("\\.?0+$", "", sprintf(paste0("%.", digits, "f"), x)))
 
-wk <- meta.wk.small %>%
+wk <- meta.wk %>%
   mutate(depth_id = fmt_num(`Depth [m]`),
          coastal = case_when(is.na(`Distance to coast [km]`) ~ NA, `Distance to coast [km]` <= 10 ~ TRUE, TRUE ~ FALSE),
          sample_name = if_else(is.na(Cruise) | is.na(Station) | is.na(depth_id), NA_character_,
@@ -509,9 +509,9 @@ mimarks_wk <- wk %>%
             `*lat_lon` = if_else(is.na(`Latitude [deg]`) | is.na(`Longitude [deg]`), NA_character_,
                                  sprintf("%.5f %s %.5f %s", abs(`Latitude [deg]`), if_else(`Latitude [deg]` >= 0, "N", "S"),
                                          abs(`Longitude [deg]`), if_else(`Longitude [deg]` >= 0, "E", "W"))),
-            tot_depth_water_col = `Bot. Depth [m]`, size_frac_up = 0.22, samp_store_temp = -80,
-            temp = `Temperature [deg C]`, salinity = Salinity, fluor = `Chlorophyll-a Fluorescence [mg/m^3]`,
-            cdom = `CDOM Fluorescence [mg/m^3]`, beam_attenuation = `Beam Attenuation [1/m]`,
+            tot_depth_water_col = `Bottom depth [m]`, size_frac_up = 0.22, samp_store_temp = -80,
+            temp = `Temperature [deg C]`, salinity = Salinity, fluor = `Chlorophyll-a fluorescence [mg/m^3]`,
+            cdom = `CDOM fluorescence [mg/m^3]`, beam_attenuation = `Beam attenuation [1/m]`,
             mixed_layer_depth = `Mixed Layer Depth [m]`, distance_to_coast = `Distance to coast [km]`,
             dna_conc = `DNA [mg/L]`,
             `parameter (units)` = paste(
@@ -525,7 +525,7 @@ required <- c("*sample_name", "sample_title", "bioproject_accession", "*organism
 bad <- vapply(mimarks_wk[required], \(x) any(is.na(x) | trimws(as.character(x)) == ""), logical(1))
 if (any(bad)) stop("Missing required MIMARKS values: ", paste(names(bad)[bad], collapse = ", "))
 if (anyDuplicated(mimarks_wk$`*sample_name`)) stop("Duplicate MIMARKS sample_name values.")
-write.csv(mimarks_wk, "OUT/7_ENV/NCBI_submission/WK_MIMARKS.survey.water.6.0.csv", row.names = FALSE, na = "NA", fileEncoding = "UTF-8")
+write.csv(mimarks_wk, "OUT/7W_ENV/NCBI_submission/WK_MIMARKS.survey.water.6.0.csv", row.names = FALSE, na = "NA", fileEncoding = "UTF-8")
 
 build_lookup <- function(x, marker) {
   p <- str_split_fixed(x, "\\|", 4)
@@ -552,5 +552,5 @@ sra_wk <- bind_rows(build_lookup(rownames(seqtab.16S), "16S"), build_lookup(rown
 
 if (nrow(sra_wk) != 2 * nrow(wk) || anyNA(sra_wk[c("sample_name", "library_ID", "filename", "filename2")]) ||
     anyDuplicated(sra_wk$library_ID)) stop("SRA matching failed: each sample must have one unique 16S and 18S library with R1/R2 files.")
-write.csv(sra_wk, "OUT/7_ENV/NCBI_submission/WK_SRA_metadata.csv",  row.names = FALSE, na = "NA", fileEncoding = "UTF-8")
+write.csv(sra_wk, "OUT/7W_ENV/NCBI_submission/WK_SRA_metadata.csv",  row.names = FALSE, na = "NA", fileEncoding = "UTF-8")
 

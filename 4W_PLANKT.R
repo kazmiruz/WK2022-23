@@ -6,21 +6,20 @@
 #   produce a combined figure (Shannon boxplots + domain‑wise stacked bar charts), and perform
 #   statistical tests on Shannon diversity (Spearman correlations, Kruskal–Wallis, Dunn post‑hoc).
 #
-# Prerequisite: run both 2_TAX and 3_CLUS first, as they generate various objects used here.
+# Prerequisite: run both 2W_TAX and 3W_CLUS first, as they generate various objects used here.
 #
 # Required external files - you can also reproduce them all yourself using the commented out code:
-#   EXT/shannon_diversity.rds                      (pre‑computed Shannon indices; can reproduce using commented code)
+#   EXT/wk.shannon_diversity.rds                    (pre‑computed Shannon indices; can reproduce using commented code)
 #
 # Outputs:
-#   OUT/4_PLANKT/cluster_top10_group_stackedbar.pdf (top 10 major groups per cluster for exploration)
-#   OUT/4_PLANKT/plankton_communities.pdf / .png    (major taxonomic groups and Shannon diversity for both eukaryotes and prokaryotes)
-#   OUT/4_PLANKT/Shannon_statistics.xlsx            (Shannon diversity statistics: change btwn clusters and corr. w/ env. parameters)
+#   OUT/4W_PLANKT/cluster_top10_group_stackedbar.pdf (top 10 major groups per cluster for exploration)
+#   OUT/4W_PLANKT/plankton_communities.pdf / .png    (major taxonomic groups and Shannon diversity for both eukaryotes and prokaryotes)
+#   OUT/4W_PLANKT/Shannon_statistics.xlsx            (Shannon diversity statistics: change btwn clusters and corr. w/ env. parameters)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
 library(vegan)
 library(dunn.test)
-library(broom)     # for tidy to summarize stats
 library(patchwork)
 library(openxlsx)  # for writing complex Excel files
 
@@ -28,47 +27,47 @@ library(openxlsx)  # for writing complex Excel files
 ### SHANNON INDEX by cluster ###
 # [rerun the commented out lines if you want to compute it yourself]
 # Shannon index (α-diversity) : richness and evenness - positively correlated to both
-#
+
 # # 1. Decide which samples have very low number of reads and remove them
 # hist(rowSums(tab.16S), breaks = 100)
 # hist(rowSums(tab.18S), breaks = 100)
-# samples_to_remove <- c("2022: Stn 18 (1 m)", "2022: Stn 2 (2 m)", "2022: Stn 4 (2 m)", "2022: Stn 6 (2 m)",  "2022: Stn 19 (52 m)")
 # 
-# # 2. Remove the samples with low reads count and ensure the order for ASV tables
-# meta.wk.small.deep <- meta.wk.small[!rownames(meta.wk.small) %in% samples_to_remove, ]
-# kept_idx <- match(rownames(meta.wk.small.deep), rownames(meta.wk.small))
-# tab.16S.deep <- tab.16S[kept_idx, ]
-# tab.18S.deep <- tab.18S[kept_idx, ]
+# # 2. Remove samples with insufficient sequencing depth; remove the same samples from both domains
+# samples_to_remove <- rownames(meta.wk)[meta.wk$`Eukaryotic Reads` < 12394 | meta.wk$`Prokaryotic Reads` < 18299]
+# keep <- !rownames(meta.wk) %in% samples_to_remove
+# meta.wk.keep <- meta.wk[keep, ]
+# tab.16S.keep <- tab.16S[keep, ]
+# tab.18S.keep <- tab.18S[keep, ]
 # 
 # # 3. Set rarefaction depth to minimum reads per domain and see how it looks just for richness
-# euk_min_reads <- min(meta.wk.small.deep$'Eukaryotic Reads')
-# prok_min_reads <- min(meta.wk.small.deep$'Prokaryotic Reads')
-# rarecurve(tab.18S.deep, step = 100, col = "gray40", label = FALSE, main = "Eukaryota"); abline(v = euk_min_reads, col = "red")
-# rarecurve(tab.16S.deep, step = 100, col = "gray40", label = FALSE, main = "Prokaryota"); abline(v = prok_min_reads, col = "red")
+# euk_min_reads <- min(meta.wk.keep$'Eukaryotic Reads')
+# prok_min_reads <- min(meta.wk.keep$'Prokaryotic Reads')
+# rarecurve(tab.18S.keep, step = 100, col = "gray40", label = FALSE, main = "Eukaryota"); abline(v = euk_min_reads, col = "red")
+# rarecurve(tab.16S.keep, step = 100, col = "gray40", label = FALSE, main = "Prokaryota"); abline(v = prok_min_reads, col = "red")
 # 
-# # 4. Calculate mean Shannon diversity after 1000 rarefactions and take average - takes 1 h to run
+# # 4. Calculate mean Shannon diversity after 1000 rarefactions and take average - takes 10 min to run
 # calculate_mean_shannon <- function(count_table, rarefy_depth, n_reps = 1000) {
 #   set.seed(161193)
-#   shannon_results <- matrix(0, nrow = nrow(count_table), ncol = n_reps)       # initialize results matrix
-#   for (i in 1:n_reps) {                                                       # perform rarefaction and calculate Shannon index 1000 times
-#     rarefied <- suppressWarnings(rrarefy(count_table, sample = rarefy_depth))
+#   shannon_results <- matrix(NA_real_, nrow = nrow(count_table), ncol = n_reps)
+#   for (i in seq_len(n_reps)) {
+#     rarefied <- vegan::rrarefy(count_table, sample = rarefy_depth)
 #     shannon_results[, i] <- vegan::diversity(rarefied, index = "shannon")
 #   }
-#   rowMeans(shannon_results)                                                   # calculate mean across rarefactions
+#   rowMeans(shannon_results)
 # }
-# meta.wk.small.deep$Shannon_Euk <- calculate_mean_shannon(tab.18S.deep, euk_min_reads)
-# meta.wk.small.deep$Shannon_Prok <- calculate_mean_shannon(tab.16S.deep, prok_min_reads)
-# saveRDS(meta.wk.small.deep %>% rownames_to_column("Sample") %>% select(Sample, Shannon_Euk, Shannon_Prok), "EXT/shannon_diversity.rds") # only Shannon
+# meta.wk.keep$Shannon_Euk <- calculate_mean_shannon(tab.18S.keep, euk_min_reads)
+# meta.wk.keep$Shannon_Prok <- calculate_mean_shannon(tab.16S.keep, prok_min_reads)
+# saveRDS(meta.wk.keep %>% rownames_to_column("Sample") %>% select(Sample, Shannon_Euk, Shannon_Prok), "EXT/wk.shannon_diversity.rds") # only Shannon
 
 # attach Shannon: rmv if you have it to avoid errors on rerun; if your meta changes, you can use pre-calc-ed Shannon as far sample names are the same
-meta.wk.small <- meta.wk.small %>% select(-contains("Shannon")) %>%
-  rownames_to_column("Sample") %>% left_join(readRDS("EXT/shannon_diversity.rds"), by = "Sample") %>% column_to_rownames("Sample")
+meta.wk <- meta.wk %>% select(-contains("Shannon")) %>%
+  rownames_to_column("Sample") %>% left_join(readRDS("EXT/wk.shannon_diversity.rds"), by = "Sample") %>% column_to_rownames("Sample")
 
 
 ####################################################################################
 ### PLOT MOST ABUDANT GROUPS AND SHANNON & STATISTICALLY TEST SHANNON DIFFERENCE ###
 
-## 1. Provide cluster dendrogram (sample tree from 3_CLUS cut to k branches)
+## 1. Provide cluster dendrogram (sample tree from 3W_CLUS cut to k branches)
 # Cut the rotated sample dendrogram at the height giving k groups, keep only the upper part -> one leaf per cluster.
 # Converting that upper tree to hclust cleans up the leaf coordinates (evenly spaced 1..k) and drops every tip to a common
 # baseline (0), so branches no longer end at uneven heights. Leaf order (1..k) is cluster 1..k = oHB..sJB,
@@ -99,7 +98,7 @@ parse_tax <- function(asv) {
   tibble(Taxonomy = tx, Domain = if(length(parts) >= 1) parts[1] else NA_character_, Phylum = if(length(parts) >= 2) parts[2] else NA_character_,
          Order = if(length(parts) >= 3) parts[3] else NA_character_, Genus = if(length(parts) >= 4) parts[4] else NA_character_)}
 
-all_asvs_tax <- tibble(ASV_full = colnames(proptab.small.taxan.saman)) %>% rownames_to_column() %>% rowwise() %>%
+all_asvs_tax <- tibble(ASV_full = colnames(proptab.wk)) %>% rownames_to_column() %>% rowwise() %>%
   mutate(bind_rows(parse_tax(ASV_full))) %>% 
   ungroup() %>% mutate(ASV_id = str_extract(ASV_full, "ASV_\\d+$")) %>%
   left_join(bind_rows(asv16, asv18) %>% select(ASV, Class), by = c("ASV_id" = "ASV")) %>%
@@ -121,8 +120,8 @@ prok_colors <- c("Cyanobacteriota" = "#02c78f", "α-Proteobacteria" = "#B84040",
                  "Verrucomicrobiota" = "#cc8d8d", "Actinomycetota" = "#f330b2", "Planctomycetota" = "#b623f6", "Archaea" = "#786D58")
 
 # Calculate RelAb of major groups
-cluster_group <- meta.wk.small %>% rownames_to_column("Sample") %>% select(Sample, Cluster) %>%
-  inner_join(proptab.small.taxan.saman %>% as_tibble(rownames = "Sample") %>%
+cluster_group <- meta.wk %>% rownames_to_column("Sample") %>% select(Sample, Cluster) %>%
+  inner_join(proptab.wk %>% as_tibble(rownames = "Sample") %>%
                pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb"), by = "Sample") %>%
   left_join(all_asvs_tax, by = "ASV") %>% group_by(Sample, Cluster, Domain2, Group) %>%
   summarise(GroupAbundSample = sum(RelAb), .groups = "drop") %>%
@@ -163,31 +162,31 @@ prok_data <- top10_groups %>% filter(Domain2 == "Prokaryote") %>% mutate(Group =
 # 
 # # Combine and save
 # combined_plot <- euk_plot + prok_plot + plot_layout(nrow = 1, widths = c(1, 1))
-# cairo_pdf("OUT/4_PLANKT/top10_per_cluster.pdf", width = 15, height = 6, onefile = FALSE); print(combined_plot); dev.off()
+# cairo_pdf("OUT/4W_PLANKT/top10_per_cluster.pdf", width = 15, height = 6, onefile = FALSE); print(combined_plot); dev.off()
 #
 #
 # ## This is for further exploration and to make it easier to report specific numbers in the Results/Discussion
 #
 # # Mean RelAb of ASVs across all samples
-# tibble(ASV = str_extract(colnames(proptab.small.taxan.saman), "ASV_\\d+"), RelAb = colMeans(proptab.small.taxan.saman) * 100) %>% View
+# tibble(ASV = str_extract(colnames(proptab.wk), "ASV_\\d+"), RelAb = colMeans(proptab.wk) * 100) %>% View
 # 
 # # RelAb of a specific ASV in each samples to see the most abundant ones overall
-# proptab.small.taxan.saman %>% select(ASV = contains("ASV_210")) %>% rownames_to_column("Sample") %>% mutate(RelAb = ASV * 100) %>% print() %>% View
+# proptab.wk %>% select(ASV = contains("ASV_210")) %>% rownames_to_column("Sample") %>% mutate(RelAb = ASV * 100) %>% print() %>% View
 # 
 # # Mean RelAb of a specific ASV within each cluster to see where it peaks
-# sapply(split(meta.wk.small, meta.wk.small$Cluster), function(d) { # 1 = oHB, 2 = BI22, 3 = cHB, 4 = dBI, 5 = dJB, 6 = EST, 7 = MR, 8 = nJB, 9 = sJB
+# sapply(split(meta.wk, meta.wk$Cluster), function(d) { # 1 = oHB, 2 = BI22, 3 = cHB, 4 = dBI, 5 = dJB, 6 = EST, 7 = MR, 8 = nJB, 9 = sJB
 #   samps <- rownames(d)
-#   asv_col <- grep("ASV_714$", colnames(proptab.small.taxan.saman), value = TRUE)
-#   gen_cols <- grep("Eukaryota", colnames(proptab.small.taxan.saman), value = TRUE)
-#   mean(proptab.small.taxan.saman[samps, asv_col] / rowSums(proptab.small.taxan.saman[samps, gen_cols], na.rm = TRUE), na.rm = TRUE) * 100})
+#   asv_col <- grep("ASV_714$", colnames(proptab.wk), value = TRUE)
+#   gen_cols <- grep("Eukaryota", colnames(proptab.wk), value = TRUE)
+#   mean(proptab.wk[samps, asv_col] / rowSums(proptab.wk[samps, gen_cols], na.rm = TRUE), na.rm = TRUE) * 100})
 # 
 # # Mean RelAb of a Genus within each cluster to see how certain genera behave in different clusters
-# sapply(split(meta.wk.small, meta.wk.small$Cluster), function(d) {
+# sapply(split(meta.wk, meta.wk$Cluster), function(d) {
 #   samps <- rownames(d)
-#   genus_cols <- grep("Choricystis", colnames(proptab.small.taxan.saman), value = TRUE) # Genus
-#   group_cols <- grep("Chlorophyta", colnames(proptab.small.taxan.saman), value = TRUE) # part of what
-#   mean(rowSums(proptab.small.taxan.saman[samps, genus_cols, drop = FALSE], na.rm = TRUE) /
-#          rowSums(proptab.small.taxan.saman[samps, group_cols, drop = FALSE], na.rm = TRUE), na.rm = TRUE) * 100})
+#   genus_cols <- grep("Choricystis", colnames(proptab.wk), value = TRUE) # Genus
+#   group_cols <- grep("Chlorophyta", colnames(proptab.wk), value = TRUE) # part of what
+#   mean(rowSums(proptab.wk[samps, genus_cols, drop = FALSE], na.rm = TRUE) /
+#          rowSums(proptab.wk[samps, group_cols, drop = FALSE], na.rm = TRUE), na.rm = TRUE) * 100})
 # 
 # # For each cyanobacterial bioindicator ASV, calculate:
 # # the mean RelAb of the ASV within the Cluster it characterizes; the mean RelAb of the overall Genus within the Cluster;
@@ -196,16 +195,16 @@ prok_data <- top10_groups %>% filter(Domain2 == "Prokaryote") %>% mutate(Group =
 #                   "ASV_221_EST", 6, "ASV_221(\\D|$)", "Cyanobium", "ASV_210_sJB", 9, "ASV_210(\\D|$)", "Cyanobium")
 # params %>%
 #   pmap_dfr(function(name, clus, asv_pat, gen_pat) {
-#     d <- meta.wk.small %>% filter(Cluster == clus)
-#     asv_col <- grep(asv_pat, colnames(proptab.small.taxan.saman), value = TRUE)
-#     gen_cols <- grep(gen_pat, colnames(proptab.small.taxan.saman), value = TRUE)
-#     asv <- mean(rowSums(proptab.small.taxan.saman[rownames(d), asv_col, drop = FALSE]) * 100, na.rm = TRUE)
-#     genus <- mean(rowSums(proptab.small.taxan.saman[rownames(d), gen_cols, drop = FALSE]) * 100, na.rm = TRUE)
+#     d <- meta.wk %>% filter(Cluster == clus)
+#     asv_col <- grep(asv_pat, colnames(proptab.wk), value = TRUE)
+#     gen_cols <- grep(gen_pat, colnames(proptab.wk), value = TRUE)
+#     asv <- mean(rowSums(proptab.wk[rownames(d), asv_col, drop = FALSE]) * 100, na.rm = TRUE)
+#     genus <- mean(rowSums(proptab.wk[rownames(d), gen_cols, drop = FALSE]) * 100, na.rm = TRUE)
 #     tibble(ASV_rel_ab = asv, Genus_rel_ab = genus, ASV_pct_of_genus = asv / genus * 100)
 #   }) %>% mutate(name = params$name, .before = 1) %>% column_to_rownames("name")
 # 
 # # Look-up the RelAb of all Genera belonging to a specific group or groups to see which ones are the most abundant
-# colSums(proptab.small.taxan.saman[rownames(meta.wk.small)[meta.wk.small$`Depth [m]` >= 1 & meta.wk.small$`Depth [m]` <= 6], ]) %>%
+# colSums(proptab.wk[rownames(meta.wk)[meta.wk$`Depth [m]` >= 1 & meta.wk$`Depth [m]` <= 6], ]) %>%
 #   enframe(name = "ASV", value = "total") %>% mutate (Genus = str_split_i(ASV, "; ", 4)) %>%
 #   inner_join(all_asvs_tax %>% filter(Group %in% "Diatoms"), by = "ASV") %>%
 #   group_by(Genus) %>% summarise(total = sum(total) * 100) %>% arrange(desc(total))
@@ -248,7 +247,7 @@ prok_plot <- major_group_plot(cluster_group, "Prokaryote", prok_colors, "Prokary
 
 ## 5. Plot Shannon diversity for both euks and proks per cluster; explore how diversity changes btwn clusters and env. variables 
 domain_order <- c("Eukaryota", "Prokaryota")
-shannon_long <- meta.wk.small %>% rownames_to_column("Sample") %>%
+shannon_long <- meta.wk %>% rownames_to_column("Sample") %>%
   pivot_longer(c(Shannon_Euk, Shannon_Prok), names_to = "Domain", values_to = "Shannon", values_drop_na = TRUE) %>%
   mutate(Domain = recode(Domain, Shannon_Euk = "Eukaryota", Shannon_Prok = "Prokaryota"),
          Domain = factor(Domain, levels = domain_order), Cluster = factor(cl_labels[as.numeric(Cluster)], levels = rev(cl_labels), ordered = TRUE))
@@ -259,7 +258,7 @@ shannon_plot <- ggplot(shannon_long, aes(Shannon, Cluster, color = Domain)) +
   geom_boxplot(fill = "white", width = 0.6, outlier.shape = NA, position = position_dodge(0.8)) +
   geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), size = 1.5, alpha = 0.8) +
   scale_color_manual(values = c(Eukaryota = "#D55E00", Prokaryota = "#0072B2")) +
-  scale_x_continuous(breaks = 1:6, expand = c(0, 0)) + coord_cartesian(xlim = c(1, 6)) +
+  scale_x_continuous(breaks = 1:6, expand = c(0, 0)) + coord_cartesian(xlim = c(1, 6)) + # adjust according to your Shannon results
   labs(x = "Shannon Diversity Index", y = NULL) +
   community_theme + theme(plot.margin = margin(l = 10, r = 20))
 
@@ -274,7 +273,7 @@ imap_dfr(fits, \(m, dom) tibble(Domain = dom, `Shapiro p-value` = shapiro.test(r
   mutate(Domain = factor(Domain, levels = domain_order)) %>% arrange(Domain) %>% print() # Shapiro p < 0.05 indicates non-normal residuals for proks
 walk2(fits, names(fits), ~{ qqnorm(residuals(.x), main = .y); qqline(residuals(.x), col = "red") }) # depart from the red line -> non-normal residuals
 
-# Overall differences in Shannon diversity among clusters (Kriskal-Wallis test)
+# Overall differences in Shannon diversity among clusters (Kruskal-Wallis test)
 shannon_kruskal <- imap_dfr(by_dom, \(d, dom) tibble(Domain = dom, `Kruskal-Wallis p-value` = kruskal.test(Shannon ~ Cluster, data = d)$p.value)) %>%
   mutate(Domain = factor(Domain, levels = domain_order)) %>% arrange(Domain)
 
@@ -296,7 +295,8 @@ shannon_spearman <- shannon_long %>%
   filter(n() >= 3, sd(Shannon) > 0, sd(Value) > 0) %>%
   summarise(n = n(), rho = cor(Shannon, Value, method = "spearman"),
             `p-value` = cor.test(Shannon, Value, method = "spearman", exact = FALSE)$p.value, .groups = "drop") %>%
-  filter(`p-value` < 0.001) %>% arrange(Domain, `p-value`)
+  filter(`p-value` < 0.001) %>%
+  arrange(Domain, `p-value`)
 
 # Export cluster results together and environmental results separately
 wb <- createWorkbook()
@@ -325,10 +325,10 @@ writeData(wb, 2, "Significant Spearman correlations", startRow = 1)
 writeDataTable(wb, 2, shannon_spearman %>% mutate(`p-value` = map_chr(`p-value`, scientific_txt)), startRow = 2)
 for (sheet in 1:2) setColWidths(wb, sheet, cols = 1:7, widths = "auto")
 
-saveWorkbook(wb, "OUT/4_PLANKT/Shannon_statistics.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "OUT/4W_PLANKT/Shannon_statistics.xlsx", overwrite = TRUE)
 
 ## 6. Combine plots with adjusted spacing and output them
 final_plot <- (dendro_plot + euk_plot + prok_plot + shannon_plot) + plot_layout(nrow = 1, widths = c(0.25, 1, 1, 0.75))
-cairo_pdf("OUT/4_PLANKT/plankton_communities.pdf", width = 24, height = 9.5, onefile = FALSE); print(final_plot); dev.off()
-png("OUT/4_PLANKT/plankton_communities.png", width = 24, height = 9.5, units = "in", res = 300); print(final_plot); dev.off()
+cairo_pdf("OUT/4W_PLANKT/plankton_communities.pdf", width = 24, height = 9.5, onefile = FALSE); print(final_plot); dev.off()
+png("OUT/4W_PLANKT/plankton_communities.png", width = 24, height = 9.5, units = "in", res = 300); print(final_plot); dev.off()
 

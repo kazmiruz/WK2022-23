@@ -22,12 +22,14 @@
 #
 # Output:
 #   EXT/meta.wk.complete.rds                    (final metadata table)
-#   OUT/1_META/wk_parameters_hist.pdf           (histograms of all numeric variables)
+#   OUT/1W_META/wk_parameters_hist.pdf           (histograms of all numeric variables)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
 library(readxl)
 library(sf)
+library(lubridate)
+library(gsw)
 
 ##########################
 ### Compiling CTD data ###
@@ -58,9 +60,9 @@ ctd.auto <- bind_rows(read.csv("CTD/excel_2022_autonomous_ctd_downcasts.csv", st
          -contains("Conductivity"), -contains("Volume Anomaly"),                            # remove unnecessary/transient variables
          -contains("Time")) %>%                                                             # remove UTC Time
   
-  rename_with(~ "Chlorophyll-a Fluorescence [mg/m^3]", contains("ECO-AFL/FL")) %>%
-  rename_with(~ "CDOM Fluorescence [mg/m^3]", contains("CDOM")) %>%
-  rename_with(~ "Beam Attenuation [1/m]", contains ("Beam Attenuation")) %>%
+  rename_with(~ "Chlorophyll-a fluorescence [mg/m^3]", contains("ECO-AFL/FL")) %>%
+  rename_with(~ "CDOM fluorescence [mg/m^3]", contains("CDOM")) %>%
+  rename_with(~ "Beam attenuation [1/m]", contains ("Beam attenuation")) %>%
   rename_with(~ "Sigma-theta [kg/m^3]", contains("sigma-theta")) %>%
   rename_with(~ gsub(" \\(UTC\\)", "", .x)) %>%
   rename_with(~ gsub("ITS-90, ", "", .x)) %>%                          # Remove "ITS-90, "
@@ -94,8 +96,8 @@ ctd.ros_down <- bind_rows(read.csv("CTD/excel_2022_rosette_ctd_downcasts.csv", s
   rename_with(~ "Latitude [deg]", contains("Lat")) %>%
   rename_with(~ "Longitude [deg]", contains("Lon")) %>%
   rename_with(~"Depth [m]", contains("Depth [salt water, m]")) %>%
-  rename_with(~ "Chlorophyll-a Fluorescence [mg/m^3]", contains("ECO-AFL/FL")) %>%
-  rename_with(~ "CDOM Fluorescence [mg/m^3]", contains("CDOM")) %>%
+  rename_with(~ "Chlorophyll-a fluorescence [mg/m^3]", contains("ECO-AFL/FL")) %>%
+  rename_with(~ "CDOM fluorescence [mg/m^3]", contains("CDOM")) %>%
   rename_with(~ "Sigma-theta [kg/m^3]", contains("sigma-theta")) %>%
   rename_with(~ gsub(" \\(UTC\\)", "", .x)) %>%
   rename_with(~ gsub("ITS-90, ", "", .x)) %>%                          # Remove "ITS-90, "
@@ -132,8 +134,8 @@ ctd.ros_bot <- bind_rows(read.csv("CTD/2022_rosette_bottle_data.csv", stringsAsF
   rename_with(~ "Latitude [deg]", contains("Lat")) %>%
   rename_with(~ "Longitude [deg]", contains("Lon")) %>%
   rename_with(~ "Depth [m]", contains("Depth [salt water, m]")) %>%
-  rename_with(~ "Chlorophyll-a Fluorescence [mg/m^3]", contains("ECO-AFL/FL")) %>%
-  rename_with(~ "CDOM Fluorescence [mg/m^3]", contains("CDOM")) %>%
+  rename_with(~ "Chlorophyll-a fluorescence [mg/m^3]", contains("ECO-AFL/FL")) %>%
+  rename_with(~ "CDOM fluorescence [mg/m^3]", contains("CDOM")) %>%
   rename_with(~ "Sigma-theta [kg/m^3]", contains("sigma-theta")) %>%   # rename this "density" to Sigma-theta
   rename_with(~ "Density [kg/m^3]", contains("density")) %>%           # rename this "density" to Density
   rename_with(~ gsub(" \\(UTC\\)", "", .x)) %>%
@@ -236,7 +238,7 @@ meta.wk <- meta.wk.genohub %>%
 # #
 # ## save to csv for ODV to assess proximity of your sampled stations & the stations you use to approximate the metadata
 # # Code = 0 for your sampled stations & Code 1-4 for CTD and CastAway; ignore TSG here
-# write.csv(bind_rows(ctd %>% filter(Code < 5), meta.wk %>% mutate(Code = 0)), "OUT/1_META/ctd.odv.csv", row.names = FALSE, fileEncoding = "UTF-8")
+# write.csv(bind_rows(ctd %>% filter(Code < 5), meta.wk %>% mutate(Code = 0)), "OUT/1W_META/ctd.odv.csv", row.names = FALSE, fileEncoding = "UTF-8")
 
 #############
 
@@ -251,7 +253,7 @@ ctd_ref <- ctd %>%
   transmute(Cruise, Year, Month,
             Day_ref = Day, Station_ref = Station, Sampling_ref = Sampling,
             Lon_ref = `Longitude [deg]`, Lat_ref = `Latitude [deg]`, Dep_ref = `Depth [m]`,
-            CDOM_ref = `CDOM Fluorescence [mg/m^3]`, Fluo_ref = `Chlorophyll-a Fluorescence [mg/m^3]`, BA_ref = `Beam Attenuation [1/m]`)
+            CDOM_ref = `CDOM fluorescence [mg/m^3]`, Fluo_ref = `Chlorophyll-a fluorescence [mg/m^3]`, BA_ref = `Beam attenuation [1/m]`)
 
 # --- Step 1: get original ROS-B data (before any approximation) ---
 rosb_original <- meta.wk %>% filter(`Pairing` == "ROS-B") %>%
@@ -280,9 +282,9 @@ valid_matches <- rosb_original %>%
 meta.wk.bot <- rosb_original %>%
   left_join(valid_matches,
             by = c("Cruise", "Station", "Cast", "Bottle Position", "Year", "Month", "Day", "Depth [m]")) %>%
-  mutate(`CDOM Fluorescence [mg/m^3]` = if_else(Year == 2023 & !is.na(CDOM_ref), CDOM_ref, `CDOM Fluorescence [mg/m^3]`),
-         `Chlorophyll-a Fluorescence [mg/m^3]` = if_else(Year == 2023 & !is.na(Fluo_ref), Fluo_ref, `Chlorophyll-a Fluorescence [mg/m^3]`),
-         `Beam Attenuation [1/m]` = if_else(!is.na(BA_ref), BA_ref, `Beam Attenuation [1/m]`),
+  mutate(`CDOM fluorescence [mg/m^3]` = if_else(Year == 2023 & !is.na(CDOM_ref), CDOM_ref, `CDOM fluorescence [mg/m^3]`),
+         `Chlorophyll-a fluorescence [mg/m^3]` = if_else(Year == 2023 & !is.na(Fluo_ref), Fluo_ref, `Chlorophyll-a fluorescence [mg/m^3]`),
+         `Beam attenuation [1/m]` = if_else(!is.na(BA_ref), BA_ref, `Beam attenuation [1/m]`),
          `Paired Station` = coalesce(Station_ref, `Paired Station`),
          `Pairing` = coalesce(Sampling_ref, `Pairing`),
          `Approximate Depth` = coalesce(Dep_ref, `Approximate Depth`)) %>%
@@ -354,7 +356,7 @@ meta.wk.nisk <- meta.wk %>%
 
 
 ### approximate "left-over" FT w/ TSG (the ones that could not find a match w/ AUTO CTD) ###
-meta.wk.ft <- meta.wk %>% filter(`Pairing` == "FT")              # samples requiring FT data
+meta.wk.ft <- meta.wk %>% filter(`Pairing` == "FT")                      # samples requiring FT data
 ctd_ft <- ctd %>% filter(Sampling == "FT") %>%                           # TSG readings at FT
   mutate (Pairing = Sampling, `Paired Station` = Station, `Approximate Depth` = `Depth [m]`) %>%
   select(Pairing, Cruise, `Paired Station`, `Approximate Depth`,
@@ -377,43 +379,109 @@ meta.wk.ft <- merge(meta.wk.ft, ctd_ft,                              # merge the
 
 ### complete data ###
 
-# Spatial layers for coast distance and geographic names
+################################
+### Final WK sample metadata ###
+################################
+
 sp_crs <- 3347
 coast <- st_read("EXT/ne_10m/ne_10m_coastline.shp", quiet = TRUE) %>% st_transform(sp_crs)
-marine <- st_read("EXT/ne_10m/ne_10m_geography_marine_polys.shp", quiet = TRUE) %>% select(marine = name) %>% st_transform(sp_crs)
+marine <- st_read("EXT/ne_10m/ne_10m_geography_marine_polys.shp", quiet = TRUE) %>%
+  select(marine = name) %>% st_transform(sp_crs)
 
 meta.wk.complete <- bind_rows(meta.wk.bot, meta.wk.auto, meta.wk.nisk, meta.wk.ft) %>%
-  transmute(Cruise, Year, Month, Day, Hour, Minute, Second,
-            Sampling, Pairing, Station, Cast, `Paired Station`, `Latitude [deg]`, `Longitude [deg]`,
-            `Depth [m]`, `Bot. Depth [m]`, genohub_id, plate.geno, `DNA [mg/L]`,
-            `Temperature [deg C]`, Salinity = `Salinity [PSU]`, `Potential Temperature [deg C]`, `Density [kg/m^3]`, `Sigma-theta [kg/m^3]`,
-            `PAR [umol photons/m^2/sec]`, `Beam Attenuation [1/m]`, `Chlorophyll-a Fluorescence [mg/m^3]`, `CDOM Fluorescence [mg/m^3]`,
-            `Oxygen [umol/kg]`) %>%
   
-  # Calculate MLD from downcast profiles for the stations sampled by a rosette (ROS‑D); upcasts don't have all the depths; Peralta-Ferriz and Woodgate (2015)
-  left_join(ctd %>% filter(Sampling == "ROS-D", !is.na(`Sigma-theta [kg/m^3]`)) %>%
-              group_by(Cruise, Station, Cast, Year, Month, Day) %>% summarise(`Mixed Layer Depth [m]` = {
-    sigma_ref <- `Sigma-theta [kg/m^3]`[which.min(`Depth [m]`)]                             # σθ at the shallowest measured depth aka reference depth
-    max(`Depth [m]`[`Sigma-theta [kg/m^3]` <= sigma_ref + 0.1])}, .groups = "drop")) %>%    # find all depths where σθ ≤ (surface σθ + 0.1 kg/m³), aka w/in threshold
-
-  # Calculate Distance to coast using coordinates and coastline
+  # Standardize names that differ in the WK source files
+  dplyr::rename(`Bottom depth [m]` = `Bot. Depth [m]`, `Potential temperature [deg C]` = `Potential Temperature [deg C]`,
+                Salinity = `Salinity [PSU]`, Bottle = `Bottle Position`, `Sample label` = Sample, genohub.id = genohub_id) %>%
+  
+  mutate(across(any_of(c("Latitude [deg]", "Longitude [deg]", "Depth [m]", "Temperature [deg C]", "Salinity",
+                         "Potential temperature [deg C]", "Density [kg/m^3]", "Sigma-theta [kg/m^3]",
+                         "Oxygen [umol/kg]")), as.numeric),
+         
+         # Preserve the original WK sampling-station name before chronological renumbering
+         `Original station` = as.character(Station),
+         
+         # Reconstruct sampling time and fractional day of year
+         Time = sprintf("%02d:%02d:%02d", Hour, Minute, Second),
+         DOY = yday(make_date(Year, Month, Day)) + (Hour * 3600 + Minute * 60 + Second) / 86400,
+         
+         # Temporary TEOS-10 variables; pressure is derived only for these calculations
+         .P = gsw_p_from_z(-`Depth [m]`, `Latitude [deg]`),
+         .SA = gsw_SA_from_SP(Salinity, .P, `Longitude [deg]`, `Latitude [deg]`),
+         .CT = gsw_CT_from_t(.SA, `Temperature [deg C]`, .P),
+         
+         # Retain supplied values and fill missing values using TEOS-10
+         `Potential temperature [deg C]` = coalesce(`Potential temperature [deg C]`, gsw_pt_from_CT(.SA, .CT)),
+         `Density [kg/m^3]` = coalesce(`Density [kg/m^3]`, gsw_rho(.SA, .CT, .P)),
+         `Sigma-theta [kg/m^3]` = coalesce(`Sigma-theta [kg/m^3]`, gsw_sigma0(.SA, .CT)),
+         `Sigma-t [kg/m^3]` = gsw_rho(.SA, gsw_CT_from_t(.SA, `Temperature [deg C]`, 0), 0) - 1000,
+         
+         # Convert mass-specific oxygen to volumetric concentration
+         `Dissolved oxygen [uM]` = `Oxygen [umol/kg]` * `Density [kg/m^3]` / 1000,
+         
+         # Known WK filtration conditions
+         `Sequential filtration` = 0L, `Pore size [μm]` = 0.22) %>%
+  
+  # MLD from the complete rosette downcast profile
+  left_join(ctd %>%
+              filter(Sampling == "ROS-D", !is.na(`Sigma-theta [kg/m^3]`)) %>%
+              mutate(Cast = suppressWarnings(as.integer(as.character(Cast)))) %>%
+              group_by(Cruise, Station, Cast, Year, Month, Day) %>%
+              summarise(`Mixed Layer Depth [m]` = {
+                sigma_ref <- `Sigma-theta [kg/m^3]`[which.min(`Depth [m]`)]
+                max(`Depth [m]`[`Sigma-theta [kg/m^3]` <= sigma_ref + 0.1])
+              }, .groups = "drop"),
+            by = c("Cruise", "Station", "Cast", "Year", "Month", "Day")) %>%
+  
+  # Standardized geographic variables
   st_as_sf(coords = c("Longitude [deg]", "Latitude [deg]"), crs = 4326, remove = FALSE) %>% st_transform(sp_crs) %>%
   mutate(`Distance to coast [km]` = {
     i <- st_nearest_feature(geometry, coast)
-    round(as.numeric(st_distance(geometry, st_geometry(coast)[i], by_element = TRUE)) / 1000)},
-    geo_loc_name = {
-      i <- st_nearest_feature(geometry, marine)
-      d <- as.numeric(st_distance(geometry, st_geometry(marine)[i], by_element = TRUE))
-      if_else(d <= 5000, paste0("Canada: ", marine$marine[i]), "Canada")}) %>% st_drop_geometry()
+    round(as.numeric(st_distance(geometry, st_geometry(coast)[i], by_element = TRUE)) / 1000)
+  },
+  geo_loc_name = {
+    i <- st_nearest_feature(geometry, marine)
+    d <- as.numeric(st_distance(geometry, st_geometry(marine)[i], by_element = TRUE))
+    if_else(d <= 5000, paste0("Canada: ", marine$marine[i]), "Canada")
+  }) %>%
+  st_drop_geometry() %>%
+  
+  # Number stations by their first sampling time across WK2022 and WK2023
+  {
+    b <- .
+    station_key <- b %>%
+      mutate(.sample_time = make_datetime(Year, Month, Day, Hour, Minute, Second, tz = "UTC")) %>%
+      arrange(.sample_time, Cruise, `Original station`) %>%
+      distinct(Cruise, `Original station`) %>%
+      mutate(Station = as.character(row_number()))
+    
+    b %>% select(-Station) %>% left_join(station_key, by = c("Cruise", "Original station"))
+  } %>%
+  
+  # Types shared with the other project metadata
+  mutate(across(any_of(c("Cruise", "Station", "Original station", "Target", "Sample label", "Time",
+                         "plate", "genohub.id", "plate.geno")), as.character),
+         across(any_of(c("Cast", "Bottle", "Year", "Month", "Day", "Hour", "Minute", "Second", "Sequential filtration")),
+                \(x) suppressWarnings(as.integer(as.character(x))))) %>%
+  
+  # Final WK output: unavailable columns are omitted rather than created as NA
+  select(any_of(c("Cruise", "Station", "Original station", "Sampling", "Cast", "Latitude [deg]", "Longitude [deg]", "geo_loc_name",
+                  "Bottom depth [m]", "Target", "Bottle", "Sample label", "Year", "Month", "Day", "Hour", "Minute", "Second",
+                  "Time", "DOY", "Depth [m]", "Potential temperature [deg C]", "Temperature [deg C]", "Salinity",
+                  "Bottle salinity", "Density [kg/m^3]", "Sigma-t [kg/m^3]", "Sigma-theta [kg/m^3]",
+                  "Chlorophyll-a fluorescence [mg/m^3]", "CDOM fluorescence [mg/m^3]", "Beam attenuation [1/m]",
+                  "Nitrate (CTD) [uM]", "Nitrate [uM]", "Nitrite [uM]", "Phosphate [uM]", "Silicate [uM]",
+                  "Dissolved oxygen [uM]", "Mixed Layer Depth [m]", "Distance to coast [km]",
+                  "Sequential filtration", "Prefiltration mesh pore size [μm]", "Pore size [μm]", "Volume filtered [L]",
+                  "DNA [mg/L]", "plate", "genohub.id", "plate.geno")))
 
-# save ALL metadata for ALL WK DNA samples to RDS to upload and work with downstream in 2_TAX
 saveRDS(meta.wk.complete, "EXT/meta.wk.complete.rds")
 
 
 #################################################################################
 ### Explore the distribution of parameters to make sure there are no oddities ###
 
-pdf("OUT/wk_parameters_hist.pdf", width = 8.5, height = 12)    # Open PDF
+pdf("OUT/1W_META/wk_parameters_hist.pdf", width = 8.5, height = 12)    # Open PDF
 par(mfrow = c(3, 2), mar = c(5, 6, 4, 3))                      # Six plots per page with wider margins
 for (col_name in names(meta.wk.complete)[sapply(meta.wk.complete, is.numeric)]) {      # Loop through numeric columns
   x <- na.omit(meta.wk.complete[[col_name]])                                           # Remove missing values
@@ -434,8 +502,8 @@ dev.off()                                                      # Close PDF
 # ctd %>% filter(Sampling == c("ROS-B", "ROS-A", "ROS-D")) %>% View()
 # 
 # # correlation of fluorescence with other parameters - none
-# with(meta.wk.complete, plot(`CDOM Fluorescence [mg/m^3]` ~ `Beam Attenuation [1/m]`))
-# with(meta.wk.complete, plot(`Chlorophyll-a Fluorescence [mg/m^3]` ~ `Beam Attenuation [1/m]`))
+# with(meta.wk.complete, plot(`CDOM fluorescence [mg/m^3]` ~ `Beam attenuation [1/m]`))
+# with(meta.wk.complete, plot(`Chlorophyll-a fluorescence [mg/m^3]` ~ `Beam attenuation [1/m]`))
 # 
 # View(castaway %>% filter (Year == 2022, Month == 8, Day %in% c(11, 17))) # the Maquatua River at low (A11, 10pm) and high (A17, 9pm) tides; sampled at low
 # View(castaway %>% filter (Year == 2023, Month == 8, Day == 15))          # near the Moose River at low (noon) and high (5 pm) tides; sampled at low
