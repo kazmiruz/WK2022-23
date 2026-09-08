@@ -295,8 +295,7 @@ shannon_spearman <- shannon_long %>%
   filter(n() >= 3, sd(Shannon) > 0, sd(Value) > 0) %>%
   summarise(n = n(), rho = cor(Shannon, Value, method = "spearman"),
             `p-value` = cor.test(Shannon, Value, method = "spearman", exact = FALSE)$p.value, .groups = "drop") %>%
-  filter(`p-value` < 0.001) %>%
-  arrange(Domain, `p-value`)
+  filter(`p-value` < 0.001) %>% arrange(Domain, `p-value`)
 
 # Export cluster results together and environmental results separately
 wb <- createWorkbook()

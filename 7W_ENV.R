@@ -141,7 +141,7 @@ arrow_scaling_factor <- max(abs(as.matrix(sc_bp[grep("^dbRDA", names(sc_bp))])),
 pdf(file = "OUT/7W_ENV/wk_dbRDA_many.pdf", width = 35, height = 20)
 numeric_vars <- meta.wk %>% select(Year, "Bottom depth [m]", "Depth [m]", "Temperature [deg C]", "Salinity",
                                    "Chlorophyll-a fluorescence [mg/m^3]", "CDOM fluorescence [mg/m^3]", "Beam attenuation [1/m]",
-                                   "Dissolved oxygen [uM]", "Mixed Layer Depth [m]", "Distance to coast [km]", "DNA [mg/L]") %>% colnames()
+                                   "Dissolved oxygen [uM]", "Mixed layer depth [m]", "Distance to coast [km]", "DNA [mg/L]") %>% colnames()
 size_range <- c(5, 30)
 
 for (param in numeric_vars) {
@@ -512,7 +512,7 @@ mimarks_wk <- wk %>%
             tot_depth_water_col = `Bottom depth [m]`, size_frac_up = 0.22, samp_store_temp = -80,
             temp = `Temperature [deg C]`, salinity = Salinity, fluor = `Chlorophyll-a fluorescence [mg/m^3]`,
             cdom = `CDOM fluorescence [mg/m^3]`, beam_attenuation = `Beam attenuation [1/m]`,
-            mixed_layer_depth = `Mixed Layer Depth [m]`, distance_to_coast = `Distance to coast [km]`,
+            mixed_layer_depth = `Mixed layer depth [m]`, distance_to_coast = `Distance to coast [km]`,
             dna_conc = `DNA [mg/L]`,
             `parameter (units)` = paste(
               if (times_are_utc) "collection_date (UTC);" else "collection_date;",

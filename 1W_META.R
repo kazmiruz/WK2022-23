@@ -415,10 +415,9 @@ meta.wk.complete <- bind_rows(meta.wk.bot, meta.wk.auto, meta.wk.nisk, meta.wk.f
          `Density [kg/m^3]` = coalesce(`Density [kg/m^3]`, gsw_rho(.SA, .CT, .P)),
          `Sigma-theta [kg/m^3]` = coalesce(`Sigma-theta [kg/m^3]`, gsw_sigma0(.SA, .CT)),
          `Sigma-t [kg/m^3]` = gsw_rho(.SA, gsw_CT_from_t(.SA, `Temperature [deg C]`, 0), 0) - 1000,
-         
-         # Convert mass-specific oxygen to volumetric concentration
          `Dissolved oxygen [uM]` = `Oxygen [umol/kg]` * `Density [kg/m^3]` / 1000,
-         
+         `AOU [umol/kg]` = gsw_O2sol(.SA, .CT, .P, `Longitude [deg]`, `Latitude [deg]`) - `Oxygen [umol/kg]`,
+
          # Known WK filtration conditions
          `Sequential filtration` = 0L, `Pore size [μm]` = 0.22) %>%
   
@@ -427,7 +426,7 @@ meta.wk.complete <- bind_rows(meta.wk.bot, meta.wk.auto, meta.wk.nisk, meta.wk.f
               filter(Sampling == "ROS-D", !is.na(`Sigma-theta [kg/m^3]`)) %>%
               mutate(Cast = suppressWarnings(as.integer(as.character(Cast)))) %>%
               group_by(Cruise, Station, Cast, Year, Month, Day) %>%
-              summarise(`Mixed Layer Depth [m]` = {
+              summarise(`Mixed layer depth [m]` = {
                 sigma_ref <- `Sigma-theta [kg/m^3]`[which.min(`Depth [m]`)]
                 max(`Depth [m]`[`Sigma-theta [kg/m^3]` <= sigma_ref + 0.1])
               }, .groups = "drop"),
@@ -471,7 +470,7 @@ meta.wk.complete <- bind_rows(meta.wk.bot, meta.wk.auto, meta.wk.nisk, meta.wk.f
                   "Bottle salinity", "Density [kg/m^3]", "Sigma-t [kg/m^3]", "Sigma-theta [kg/m^3]",
                   "Chlorophyll-a fluorescence [mg/m^3]", "CDOM fluorescence [mg/m^3]", "Beam attenuation [1/m]",
                   "Nitrate (CTD) [uM]", "Nitrate [uM]", "Nitrite [uM]", "Phosphate [uM]", "Silicate [uM]",
-                  "Dissolved oxygen [uM]", "Mixed Layer Depth [m]", "Distance to coast [km]",
+                  "Dissolved oxygen [uM]", "AOU [umol/kg]", "Mixed layer depth [m]", "Distance to coast [km]",
                   "Sequential filtration", "Prefiltration mesh pore size [μm]", "Pore size [μm]", "Volume filtered [L]",
                   "DNA [mg/L]", "plate", "genohub.id", "plate.geno")))
 

@@ -277,7 +277,7 @@ mean(rowSums(proptab.wk[, grepl("Bacteria|Archaea", colnames(proptab.wk))]))    
 # asv16 %>% filter(Phylum == "Actinomycetota") %>% distinct(Genus) %>% View()
 
 # # further exploration
-# meta.wk %>% filter(!is.na(`Mixed Layer Depth [m]`)) %>% pull(`Original Station`) %>% unique() %>% length()
+# meta.wk %>% filter(!is.na(`Mixed layer depth [m]`)) %>% pull(`Original Station`) %>% unique() %>% length()
 
 # # you can further assess how close paired stations are
 # range(meta.wk.bot$dist_diff, na.rm = TRUE); median(meta.wk.bot$dist_diff, na.rm = TRUE) # all
