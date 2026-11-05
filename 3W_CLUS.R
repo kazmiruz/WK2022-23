@@ -6,17 +6,17 @@
 #   run TITAN for community‑level change points along salinity and latitude, and check for flowthrough contamination.
 #
 # Required external files:
-#   EXT/meta.wk.rds                   (cleaned up metadata; can also produce by running 1W_META and 2W_TAX)
-#   EXT/proptab.wk.rds       (cleaned up ASV table; can also produce by running 1W_META and 2W_TAX)
+#   EXT/meta.wk.rds                         (cleaned up metadata; can also produce by running 1W_META and 2W_TAX)
+#   EXT/proptab.wk.rds                      (cleaned up ASV table; can also produce by running 1W_META and 2W_TAX)
 #   EXT/indicator_res.rds                   (can reproduce using commented code)
 #   EXT/titan_offshore_surface_salinity.rds (can reproduce using commented code)
-#   EXT/titan_offshore_surface_latitude.rds      (can reproduce using commented code)
+#   EXT/titan_offshore_surface_latitude.rds (can reproduce using commented code)
 #
 # Outputs:
 #   OUT/3W_CLUS/wk_simple_hm.pdf                           (diagnostic heatmap)
 #   OUT/3W_CLUS/wk_complex_hm.pdf / .png                   (annotated ComplexHeatmap)
 #   OUT/3W_CLUS/dendro_pure.pdf / .png                     (dendrogram with cluster labels)
-#   OUT/3W_CLUS/titan_offshore_surface_latitude.pdf / .csv      (TITAN output for latitude)
+#   OUT/3W_CLUS/titan_offshore_surface_latitude.pdf / .csv (TITAN output for latitude)
 #   OUT/3W_CLUS/titan_offshore_surface_salinity.pdf / .csv (TITAN output for salinity)
 # -------------------------------------------------------------------------
 
@@ -217,11 +217,11 @@ dev.off()
 
 # Use meta.wk$Cluster because its sample names align with proptab.wk
 # Run on untransformed relative abundances, allow single clusters and cluster pairs, and save the result for later sessions.
-# set.seed(161193)
+set.seed(161193)
 # indicator_res <- multipatt(proptab.wk, meta.wk$Cluster, func = "IndVal.g",
 #                            duleg = FALSE, # If TRUE, Cluster combos aren't considered, only the original Clusters (1 to k, Dufrêne & Legendre, 1997)
 #                            max.order = 2, control = how(nperm = 999))
-# write_rds(indicator_res, "EXT/indicator_res.rds")       # 9 clusters w/ pairs; takes 5 min to run
+# write_rds(indicator_res, "EXT/indicator_res.rds")       # 9 clusters w/ pairs
 indicator_res <- read_rds("EXT/indicator_res.rds")
 
 # # Explore the indicspecies output to understand the concept
@@ -366,7 +366,7 @@ draw_wk_complex_hm <- function() {
           
           top_annotation = {
             asv_ids <- colnames(proptab.trans)     # ASVs in heatmap (columns)
-            mc <- asv_max_cluster_vec[asv_ids]     # Cluster where each ASV is most abundant
+            mc <- chosen_cluster[asv_ids]          # Member of the tested association selected for each bioindicator
             is_indic <- asv_ids %in% specific_asvs # bioindicators by name
             is_cosmo <- asv_ids %in% cosmo_asvs    # cosmopolitans by name
             pal_annot <- c(cluster_palette, cosmo = "black")      # Palette for annotation bars: clusters + cosmopolitans (black)
@@ -374,7 +374,7 @@ draw_wk_complex_hm <- function() {
             ## --- TOP BAR: all indicators + all cosmopolitans in the heatmap ---
             top_vec <- rep(NA_character_, length(asv_ids))
             names(top_vec) <- asv_ids
-            top_vec[is_indic] <- mc[is_indic]      # indicators: color by max-abundance cluster
+            top_vec[is_indic] <- mc[is_indic]      # indicators: color by selected associated cluster
             top_vec[is_cosmo] <- "cosmo"           # cosmopolitans: black
             
             ## --- BOTTOM BAR: only ASVs that appear in the INDIC+COSMO dotplot ---
@@ -383,7 +383,7 @@ draw_wk_complex_hm <- function() {
             dot_common <- intersect(asv_in_dotplot, asv_ids)
             cosmo_dot  <- intersect(cosmo_asvs, dot_common)         # cosmopolitans in dotplot
             indic_dot  <- setdiff(dot_common, cosmo_dot)            # indicators in dotplot
-            bottom_vec[indic_dot] <- mc[match(indic_dot, asv_ids)]  # indicators in dotplot: cluster of max abundance
+            bottom_vec[indic_dot] <- mc[match(indic_dot, asv_ids)]  # indicators in dotplot: selected associated cluster
             bottom_vec[cosmo_dot] <- "cosmo"                        # cosmopolitans in dotplot: black
             
             # Factors with explicit levels: clusters 1..k + "cosmo"
@@ -463,7 +463,7 @@ cairo_pdf(file = "OUT/3W_CLUS/wk_complex_hm.pdf", width = 31, height = 17)
 draw_wk_complex_hm()
 dev.off()
 
-png("OUT/3W_CLUS/wk_complex_hm.png", width = 31, height = 17, units = "in", res = 300, type = "cairo")
+png("OUT/3W_CLUS/wk_complex_hm.png", width = 31, height = 17, units = "in", res = 1000)
 draw_wk_complex_hm()                       # calls the function which includes all decorations
 dev.off()
 

@@ -7,6 +7,7 @@
 # Prerequisite: run 3W_CLUS first, as it generate various objects used here.
 #
 # Required external files:
+#   EXT/proptab.wk.original.rds            (original relative abundance table from 2W_TAX.R, including rare ASVs)
 #   EXT/ne_10m/                            (includes various shape and associated files for creating maps)
 #   EXT/marmap/                            (bathymetry)
 #   EXT/HBC_stations.csv                   (HBC stations sampled in this and previous studies)
@@ -196,7 +197,7 @@ period <- c("2017-07" = "July 2017",
 # Published and current stations
 hb <- bind_rows(read.csv("EXT/HBC_stations.csv") %>% transmute(Date = as.Date(Date), eDNA, Latitude, Longitude),
                 meta.wk %>% transmute(Date = as.Date(paste(Year, Month, Day, sep = "-")), eDNA = "All organisms",
-                                            Latitude = `Latitude [deg]`, Longitude = `Longitude [deg]`)) %>%
+                                      Latitude = `Latitude [deg]`, Longitude = `Longitude [deg]`)) %>%
   mutate(Sampling = period[format(Date, "%Y-%m")], lon0 = round(Longitude, 4), lat0 = round(Latitude, 4))
 
 # Combine duplicate coordinates and jitter similar stations
@@ -448,22 +449,24 @@ plot_group <- function(data, group_col, colors, title, filename, max_size, upper
 # ============================================================
 # 3. Eukaryotic groups
 # ============================================================
+# Include all cleaned ASVs when summing genus relative abundances.
+proptab.wk.original <- readRDS("EXT/proptab.wk.original.rds")
 groups <- list(
-  list(genera = c("Chaetoceros", "Minidiscus", "Arcocellulus"),
-       colors = c("Chaetoceros" = "red2", "Minidiscus" = "green3", "Arcocellulus" = "#8F00FF"),
+  list(genera = c("Chaetoceros", "Minidiscus", "Thalassiosira"),
+       colors = c("Chaetoceros" = "red2", "Minidiscus" = "green3", "Thalassiosira" = "cyan"),
        title = "Diatoms", file = "diatoms_surface",
        max_size = 15, lim = 35, breaks = c(1, 5, 25, 35), labels = c("1%", "5%", "25%", "35%")),
   list(genera = c("Gyrodinium", "Heterocapsa", "Gymnodinium"),
-       colors = c("Gyrodinium" = "red2", "Heterocapsa" = "green3", "Gymnodinium" = "#8F00FF"),
+       colors = c("Gyrodinium" = "red2", "Heterocapsa" = "green3", "Gymnodinium" = "cyan"),
        title = "Dinoflagellates", file = "dinos_surface",
        max_size = 15 * sqrt(40 / 35), lim = 40, breaks = c(1, 5, 25, 40), labels = c("1%", "5%", "25%", "40%")),
   list(genera = c("Picochlorum", "Micromonas", "Aureococcus"),
-       colors = c("Picochlorum" = "red2", "Micromonas" = "green3", "Aureococcus" = "#8F00FF"),
+       colors = c("Picochlorum" = "red2", "Micromonas" = "green3", "Aureococcus" = "cyan"),
        title = "Non-diatom algae", file = "algae_surface",
        max_size = 15 * sqrt(55 / 35), lim = 55, breaks = c(1, 5, 25, 55), labels = c("1%", "5%", "25%", "55%")))
 
 for (g in groups) {
-  d <- proptab.wk %>% as_tibble(rownames = "Sample") %>%
+  d <- proptab.wk.original %>% as_tibble(rownames = "Sample") %>%
     pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
     mutate(Genus = sapply(strsplit(ASV, "; "), `[`, 4)) %>%
     filter(Genus %in% g$genera) %>% group_by(Sample, Genus) %>%
@@ -482,10 +485,10 @@ for (g in groups) {
 target_asvs <- c("Bacteria; Cyanobacteriota; Synechococcales; Synechococcus CC9902; ASV_17",
                  "Bacteria; Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_221",
                  "Bacteria; Cyanobacteriota; Synechococcales; Cyanobium PCC-6307; ASV_210")
-cols <- setNames(c("red2", "green3", "#8F00FF"), target_asvs)
+cols <- setNames(c("red2", "green3", "cyan"), target_asvs)
 cyano_labels <- str_replace(target_asvs, "^.*; (.*); (ASV_\\d+)$", "\\1 (\\2)")
 
-d <- proptab.wk[, target_asvs] %>% as_tibble(rownames = "Sample") %>%
+d <- proptab.wk.original[, target_asvs] %>% as_tibble(rownames = "Sample") %>%
   pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb") %>%
   left_join(meta.wk %>% rownames_to_column("Sample") %>%
               mutate(Depth_group = ifelse(`Depth [m]` >= 1 & `Depth [m]` <= 6, "Surface", NA)), by = "Sample") %>%
@@ -495,11 +498,11 @@ d <- proptab.wk[, target_asvs] %>% as_tibble(rownames = "Sample") %>%
 plot_group(d, "ASV", cols, "Cyanobacteria", "cyano_surface",
            max_size = 15, upper_limit = 15, breaks = c(0.1, 1, 5, 15), labels = c("0.1%", "1%", "5%", "15%"), legend_labels = cyano_labels)
 
- 
+
 # # Explore: at what T or S does a certain ASV reach max RelAb? what is the distribution?
 # ASV = "ASV_17"
 # meta.wk %>% rownames_to_column("Sample") %>% filter(`Depth [m]` %in% 1:6) %>%
-#   left_join(proptab.wk %>% as.data.frame() %>% rownames_to_column("Sample") %>%
+#   left_join(proptab.wk.original %>% as.data.frame() %>% rownames_to_column("Sample") %>%
 #               select(Sample, asv = matches(paste0(ASV, "(\\D|$)"))), by = "Sample") %>%
 #   {
 #     # occurrence range (all surface samples with RelAb > 0)

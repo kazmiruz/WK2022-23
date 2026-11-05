@@ -127,7 +127,7 @@ prepare_domain_data <- function(data_plot, data_all, phylum_order, phylum_colors
 
 add_indicator_info <- function(obj) {
   obj$gl <- obj$gl %>% mutate(IsCosmo = ASV %in% cosmo_asvs,                                    # Determine if ASV is cosmopolitan
-                              ClusterNum = as.character(asv_max_cluster_vec[ASV]),              # Get cluster number from asv_max_cluster_vec
+                              ClusterNum = as.character(coalesce(chosen_cluster[ASV], asv_max_cluster_vec[ASV])), # tested association for indicators; maximum for non-indicators
                               tag = ifelse(IsCosmo, "COSM", cl_labels[as.integer(ClusterNum)]), # Assign tag: cluster label or COSM for cosmopolitans
                               label = paste0(label, " [", tag, "]")) %>% select(-IsCosmo, -ClusterNum)
   obj

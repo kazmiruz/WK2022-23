@@ -2,14 +2,15 @@
 # Purpose:
 #   Assess major plankton taxa and Shannon diversity.
 #   Specifically, attach pre‑computed Shannon diversity (can compute them here yourself) to the metadata,
-#   build a unified taxonomy lookup, compute average relative abundances per cluster for each major group (usually at the phylum level),
+#   use the original ASV table for taxonomy lookups and major group and genus composition summaries,
 #   produce a combined figure (Shannon boxplots + domain‑wise stacked bar charts), and perform
 #   statistical tests on Shannon diversity (Spearman correlations, Kruskal–Wallis, Dunn post‑hoc).
 #
 # Prerequisite: run both 2W_TAX and 3W_CLUS first, as they generate various objects used here.
 #
-# Required external files - you can also reproduce them all yourself using the commented out code:
-#   EXT/wk.shannon_diversity.rds                    (pre‑computed Shannon indices; can reproduce using commented code)
+# Required external files:
+#   EXT/proptab.wk.original.rds                      (original relative abundance table from 2W_TAX.R)
+#   EXT/wk.shannon_diversity.rds                     (pre‑computed Shannon indices; can reproduce using commented code)
 #
 # Outputs:
 #   OUT/4W_PLANKT/cluster_top10_group_stackedbar.pdf (top 10 major groups per cluster for exploration)
@@ -27,13 +28,13 @@ library(openxlsx)  # for writing complex Excel files
 ### SHANNON INDEX by cluster ###
 # [rerun the commented out lines if you want to compute it yourself]
 # Shannon index (α-diversity) : richness and evenness - positively correlated to both
-
+ 
 # # 1. Decide which samples have very low number of reads and remove them
 # hist(rowSums(tab.16S), breaks = 100)
 # hist(rowSums(tab.18S), breaks = 100)
 # 
 # # 2. Remove samples with insufficient sequencing depth; remove the same samples from both domains
-# samples_to_remove <- rownames(meta.wk)[meta.wk$`Eukaryotic Reads` < 12394 | meta.wk$`Prokaryotic Reads` < 18299]
+# samples_to_remove <- rownames(meta.wk)[meta.wk$`Eukaryotic Reads` < 12394 | meta.wk$`Prokaryotic Reads` < 18270]
 # keep <- !rownames(meta.wk) %in% samples_to_remove
 # meta.wk.keep <- meta.wk[keep, ]
 # tab.16S.keep <- tab.16S[keep, ]
@@ -93,21 +94,24 @@ dendro_plot <- ggplot(dendro_seg) +
 
 
 ## 2. Specify plankton groups and calculate and assign colours
+# Include all cleaned ASVs in composition summaries; use original relative abundances without renormalization.
+proptab.wk.original <- readRDS("EXT/proptab.wk.original.rds")
 parse_tax <- function(asv) {
   tx <- asv %>% str_remove(";\\s*ASV_\\d+$") %>% stringr::str_remove_all("\\s*\\[\\d+\\]"); parts <- strsplit(tx, ";\\s*")[[1]]
   tibble(Taxonomy = tx, Domain = if(length(parts) >= 1) parts[1] else NA_character_, Phylum = if(length(parts) >= 2) parts[2] else NA_character_,
          Order = if(length(parts) >= 3) parts[3] else NA_character_, Genus = if(length(parts) >= 4) parts[4] else NA_character_)}
 
-all_asvs_tax <- tibble(ASV_full = colnames(proptab.wk)) %>% rownames_to_column() %>% rowwise() %>%
+all_asvs_tax <- tibble(ASV_full = colnames(proptab.wk.original)) %>% rownames_to_column() %>% rowwise() %>%
   mutate(bind_rows(parse_tax(ASV_full))) %>% 
   ungroup() %>% mutate(ASV_id = str_extract(ASV_full, "ASV_\\d+$")) %>%
-  left_join(bind_rows(asv16, asv18) %>% select(ASV, Class), by = c("ASV_id" = "ASV")) %>%
+  left_join(bind_rows(asv16.original, asv18.original) %>% select(ASV, Class), by = c("ASV_id" = "ASV")) %>%
   transmute(ASV = ASV_full, Domain2 = if_else(Domain %in% c("Bacteria", "Archaea"), "Prokaryote", "Eukaryote"),
             Group = if_else(Domain == "Archaea", "Archaea",
                             case_when(Class == "Alphaproteobacteria" ~ "α-Proteobacteria", Class == "Gammaproteobacteria" ~ "γ-Proteobacteria",
                                       Class %in% c("Bacillariophyceae", "Coscinodiscophyceae", "Mediophyceae") ~ "Diatoms",
                                       Class %in% c("Pelagophyceae", "Chrysophyceae", "Dictyochophyceae", "Bolidophyceae",
-                                                   "Phaeophyceae", "Eustigmatophyceae", "Raphidophyceae", "MOCH-2") ~ "non-diatom Ochrophyta",
+                                                   "Phaeophyceae", "Eustigmatophyceae", "Raphidophyceae",
+                                                   "Phaeothamniophyceae", "Xanthophyceae", "MOCH-2", "MOCH-4") ~ "non-diatom Ochrophyta",
                                       Order == "Crustacea" ~ "Crustacea",
                                       Class == "Dinophyceae" ~ "Dinophyceae", Class == "Syndiniales" ~ "Syndiniales",
                                       TRUE ~ str_replace(Phylum, "^uncl.\\s+", ""))))
@@ -121,7 +125,7 @@ prok_colors <- c("Cyanobacteriota" = "#02c78f", "α-Proteobacteria" = "#B84040",
 
 # Calculate RelAb of major groups
 cluster_group <- meta.wk %>% rownames_to_column("Sample") %>% select(Sample, Cluster) %>%
-  inner_join(proptab.wk %>% as_tibble(rownames = "Sample") %>%
+  inner_join(proptab.wk.original %>% as_tibble(rownames = "Sample") %>%
                pivot_longer(-Sample, names_to = "ASV", values_to = "RelAb"), by = "Sample") %>%
   left_join(all_asvs_tax, by = "ASV") %>% group_by(Sample, Cluster, Domain2, Group) %>%
   summarise(GroupAbundSample = sum(RelAb), .groups = "drop") %>%
@@ -168,25 +172,24 @@ prok_data <- top10_groups %>% filter(Domain2 == "Prokaryote") %>% mutate(Group =
 # ## This is for further exploration and to make it easier to report specific numbers in the Results/Discussion
 #
 # # Mean RelAb of ASVs across all samples
-# tibble(ASV = str_extract(colnames(proptab.wk), "ASV_\\d+"), RelAb = colMeans(proptab.wk) * 100) %>% View
+# tibble(ASV = str_extract(colnames(proptab.wk.original), "ASV_\\d+"), RelAb = colMeans(proptab.wk.original) * 100) %>% View
 # 
 # # RelAb of a specific ASV in each samples to see the most abundant ones overall
-# proptab.wk %>% select(ASV = contains("ASV_210")) %>% rownames_to_column("Sample") %>% mutate(RelAb = ASV * 100) %>% print() %>% View
+# proptab.wk.original %>% select(ASV = matches("ASV_210$")) %>% rownames_to_column("Sample") %>% mutate(RelAb = ASV * 100) %>% print() %>% View
 # 
 # # Mean RelAb of a specific ASV within each cluster to see where it peaks
 # sapply(split(meta.wk, meta.wk$Cluster), function(d) { # 1 = oHB, 2 = BI22, 3 = cHB, 4 = dBI, 5 = dJB, 6 = EST, 7 = MR, 8 = nJB, 9 = sJB
 #   samps <- rownames(d)
-#   asv_col <- grep("ASV_714$", colnames(proptab.wk), value = TRUE)
-#   gen_cols <- grep("Eukaryota", colnames(proptab.wk), value = TRUE)
-#   mean(proptab.wk[samps, asv_col] / rowSums(proptab.wk[samps, gen_cols], na.rm = TRUE), na.rm = TRUE) * 100})
+#   asv_col <- grep("ASV_714$", colnames(proptab.wk.original), value = TRUE)
+#   mean(proptab.wk.original[samps, asv_col], na.rm = TRUE) * 100})
 # 
-# # Mean RelAb of a Genus within each cluster to see how certain genera behave in different clusters
+# # Mean percentage of a selected group contributed by a genus within each cluster
 # sapply(split(meta.wk, meta.wk$Cluster), function(d) {
 #   samps <- rownames(d)
-#   genus_cols <- grep("Choricystis", colnames(proptab.wk), value = TRUE) # Genus
-#   group_cols <- grep("Chlorophyta", colnames(proptab.wk), value = TRUE) # part of what
-#   mean(rowSums(proptab.wk[samps, genus_cols, drop = FALSE], na.rm = TRUE) /
-#          rowSums(proptab.wk[samps, group_cols, drop = FALSE], na.rm = TRUE), na.rm = TRUE) * 100})
+#   genus_cols <- grep("Choricystis", colnames(proptab.wk.original), value = TRUE) # Genus
+#   group_cols <- grep("Chlorophyta", colnames(proptab.wk.original), value = TRUE) # part of what
+#   mean(rowSums(proptab.wk.original[samps, genus_cols, drop = FALSE], na.rm = TRUE) /
+#          rowSums(proptab.wk.original[samps, group_cols, drop = FALSE], na.rm = TRUE), na.rm = TRUE) * 100})
 # 
 # # For each cyanobacterial bioindicator ASV, calculate:
 # # the mean RelAb of the ASV within the Cluster it characterizes; the mean RelAb of the overall Genus within the Cluster;
@@ -196,15 +199,15 @@ prok_data <- top10_groups %>% filter(Domain2 == "Prokaryote") %>% mutate(Group =
 # params %>%
 #   pmap_dfr(function(name, clus, asv_pat, gen_pat) {
 #     d <- meta.wk %>% filter(Cluster == clus)
-#     asv_col <- grep(asv_pat, colnames(proptab.wk), value = TRUE)
-#     gen_cols <- grep(gen_pat, colnames(proptab.wk), value = TRUE)
-#     asv <- mean(rowSums(proptab.wk[rownames(d), asv_col, drop = FALSE]) * 100, na.rm = TRUE)
-#     genus <- mean(rowSums(proptab.wk[rownames(d), gen_cols, drop = FALSE]) * 100, na.rm = TRUE)
+#     asv_col <- grep(asv_pat, colnames(proptab.wk.original), value = TRUE)
+#     gen_cols <- grep(gen_pat, colnames(proptab.wk.original), value = TRUE)
+#     asv <- mean(rowSums(proptab.wk.original[rownames(d), asv_col, drop = FALSE]) * 100, na.rm = TRUE)
+#     genus <- mean(rowSums(proptab.wk.original[rownames(d), gen_cols, drop = FALSE]) * 100, na.rm = TRUE)
 #     tibble(ASV_rel_ab = asv, Genus_rel_ab = genus, ASV_pct_of_genus = asv / genus * 100)
 #   }) %>% mutate(name = params$name, .before = 1) %>% column_to_rownames("name")
 # 
-# # Look-up the RelAb of all Genera belonging to a specific group or groups to see which ones are the most abundant
-# colSums(proptab.wk[rownames(meta.wk)[meta.wk$`Depth [m]` >= 1 & meta.wk$`Depth [m]` <= 6], ]) %>%
+# # Look up mean RelAb of genera belonging to a selected group across surface samples
+# colMeans(proptab.wk.original[rownames(meta.wk)[meta.wk$`Depth [m]` >= 1 & meta.wk$`Depth [m]` <= 6], ]) %>%
 #   enframe(name = "ASV", value = "total") %>% mutate (Genus = str_split_i(ASV, "; ", 4)) %>%
 #   inner_join(all_asvs_tax %>% filter(Group %in% "Diatoms"), by = "ASV") %>%
 #   group_by(Genus) %>% summarise(total = sum(total) * 100) %>% arrange(desc(total))
@@ -280,12 +283,13 @@ shannon_kruskal <- imap_dfr(by_dom, \(d, dom) tibble(Domain = dom, `Kruskal-Wall
 # Significant pairwise differences in Shannon diversity among clusters (post hoc Dunn’s test with Benjamini-Hochberg adjustment)
 shannon_dunn <- imap_dfr(by_dom, \(d, dom) {
   med <- c(tapply(d$Shannon, d$Cluster, median))
-  dt <- dunn.test(d$Shannon, d$Cluster, method = "bh", kw = FALSE, list = TRUE)
+  dt <- dunn.test::dunn.test(d$Shannon, as.integer(d$Cluster), method = "bh", kw = FALSE, altp = TRUE, list = TRUE)
   groups <- str_split_fixed(dt$comparisons, "\\s+-\\s+", 2)
+  groups <- matrix(levels(d$Cluster)[as.integer(groups)], ncol = 2) # restore cluster names from the numeric group codes
   tibble(Domain = dom, `Direction of difference` = case_when(
     med[groups[, 1]] > med[groups[, 2]] ~ paste(groups[, 1], ">", groups[, 2]),
     med[groups[, 2]] > med[groups[, 1]] ~ paste(groups[, 2], ">", groups[, 1]),
-    TRUE ~ paste(groups[, 1], "=", groups[, 2])), `BH-adjusted p-value` = dt$P.adjusted)}) %>%
+    TRUE ~ paste(groups[, 1], "=", groups[, 2])), `BH-adjusted p-value` = dt$altP.adjusted)}) %>%
   filter(`BH-adjusted p-value` < 0.05) %>% mutate(Domain = factor(Domain, levels = domain_order)) %>% arrange(Domain, `BH-adjusted p-value`)
 
 # Significant Spearman correlations with spatiotemporal and environmental parameters
@@ -327,7 +331,6 @@ for (sheet in 1:2) setColWidths(wb, sheet, cols = 1:7, widths = "auto")
 saveWorkbook(wb, "OUT/4W_PLANKT/Shannon_statistics.xlsx", overwrite = TRUE)
 
 ## 6. Combine plots with adjusted spacing and output them
-final_plot <- (dendro_plot + euk_plot + prok_plot + shannon_plot) + plot_layout(nrow = 1, widths = c(0.25, 1, 1, 0.75))
+final_plot <- (dendro_plot + shannon_plot + euk_plot + prok_plot) + plot_layout(nrow = 1, widths = c(0.25, 0.75, 1, 1))
 cairo_pdf("OUT/4W_PLANKT/plankton_communities.pdf", width = 24, height = 9.5, onefile = FALSE); print(final_plot); dev.off()
 png("OUT/4W_PLANKT/plankton_communities.png", width = 24, height = 9.5, units = "in", res = 300); print(final_plot); dev.off()
-

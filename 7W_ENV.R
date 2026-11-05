@@ -89,27 +89,27 @@ vif.cca(rda_model) %>% as.data.frame() %>% rownames_to_column("Variable") %>% re
 
 # set.seed(161193)
 # anova.cca(rda_model, permutations = 99999)                                    # test model sign-ce (*** = very significant)
-#   Df SumOfSqs     F Pr(>F)    
-#   Model     4   5.4229 8.882  1e-05 ***
-#   Residual 67  10.2268    
+#          Df  SumOfSqs     F  Pr(>F)    
+# Model     4   5.4174 8.8772  1e-05 ***
+# Residual 67  10.2218  
 
 # set.seed(161193)
 # anova.cca(rda_model, permutations = 99999, by = "axis")                       # test axes sign-ce
 #   Df SumOfSqs       F Pr(>F)    
-#   dbRDA1    1   2.8146 18.4399  1e-05 ***
-#   dbRDA2    1   1.2820  8.5243  1e-05 ***
-#   dbRDA3    1   0.9360  6.3149  1e-05 ***
-#   dbRDA4    1   0.3903  2.6717 0.0077 ** 
-#   Residual 67  10.2268  
+#   dbRDA1    1   2.8090 18.4121   1e-05 ***
+#   dbRDA2    1   1.2811  8.5226   1e-05 ***
+#   dbRDA3    1   0.9366  6.3225   1e-05 ***
+#   dbRDA4    1   0.3906  2.6748 0.00727 ** 
+#   Residual 67  10.2218  
 
 # set.seed(161193)
 # anova.cca(rda_model, permutations = 99999, by = "term") %>% arrange(desc(F))  # test var. sign-ce (biased towards the vars appearing first in the formula)
 # Df SumOfSqs       F Pr(>F)    
-#   Salinity             1   2.0763 13.6026  1e-05 ***
-#   `Distance to coast`  1   1.2064  7.9039  1e-05 ***
-#   Temperature          1   1.1555  7.5701  1e-05 ***
-#   Depth                1   0.9847  6.4514  1e-05 ***
-#   Residual            67  10.2268   
+#   Salinity             1   2.0717 13.5789  1e-05 ***
+#   `Distance to coast`  1   1.2045  7.8947  1e-05 ***
+#   Temperature          1   1.1566  7.5811  1e-05 ***
+#   Depth                1   0.9847  6.4540  1e-05 ***
+#   Residual            67  10.2218   
 
 set.seed(161193)
 anova_per_var <- anova.cca(rda_model, permutations = 99999, by = "margin") %>%  # test var. sign-ce if marginal (last in the formula) and store it neatly
@@ -128,7 +128,7 @@ perc <- round(100 * (summary(rda_model)$cont$importance[2, 1:4]), 1) %>% print()
 # 18.0    8.2    6.0    2.5 
 
 RsquareAdj(rda_model)$adj.r.squared                                              # adjusted R2 (total variaiton explained but adjusted for number of vars)
-# [1] 0.3075063
+# [1] 0.3075065
 
 ## Scores and arrow scaling (remove any backticks in bp labels)
 sc_bp <- scores(rda_model, display = "bp", scaling = 2, choices = 1:rda_model$CCA$rank) %>%
@@ -189,6 +189,13 @@ grid.newpage(); grid.draw(tableGrob(anova_per_var, rows = NULL,
 dev.off()
 
 ## dbRDA plots for the manuscript
+# Shared ranges: dbRDA1 and dbRDA3 are horizontal; dbRDA2 is vertical in both panels
+rbind(x = range(c(sc_si$dbRDA1, sc_si$dbRDA3)), y = range(sc_si$dbRDA2))
+
+# Choose shared limits after inspecting the ranges; leave room for arrows and labels
+db_xlim <- c(-2, 2)
+db_ylim <- c(-1, 2.5)
+
 p1 <- ggplot(sc_si, aes(dbRDA1, dbRDA2)) +
   geom_point(aes(fill = factor(Cluster), shape = factor(Year)), size = 7, alpha = 0.9, color = "black", stroke = 0.5) +
   geom_segment(data = sc_bp, aes(x = 0, y = 0, xend = dbRDA1*arrow_scaling_factor, yend = dbRDA2*arrow_scaling_factor),
@@ -205,7 +212,7 @@ p1 <- ggplot(sc_si, aes(dbRDA1, dbRDA2)) +
                     guide = guide_legend(override.aes = list(shape = 21, color = "black", size = 7, alpha = 0.9, stroke = 0.5),
                                          keywidth = unit(1.1, "cm"), keyheight = unit(1.1, "cm"), order = 2)) +
   labs(x = sprintf("dbRDA1 (%.1f%%)", perc[1]), y = sprintf("dbRDA2 (%.1f%%)", perc[2])) +
-  coord_cartesian(xlim = c(-2, 1.5), ylim = c(-3, 1), expand = FALSE) +
+  coord_cartesian(xlim = db_xlim, ylim = db_ylim, expand = FALSE) +
   theme_minimal() +
   theme(axis.title = element_text(size = 25, face = "bold"),
         axis.text  = element_text(size = 22, color = "black"),
@@ -231,7 +238,7 @@ p2 <- ggplot(sc_si, aes(dbRDA3, dbRDA2)) +
                     guide = guide_legend(override.aes = list(shape = 21, color = "black", size = 7, alpha = 0.9, stroke = 0.5),
                                          keywidth = unit(1.1, "cm"), keyheight = unit(1.1, "cm"), order = 2)) +
   labs(x = sprintf("dbRDA3 (%.1f%%)", perc[3]), y = NULL) +
-  coord_cartesian(xlim = c(-2, 1.5), ylim = c(-3, 1), expand = FALSE) +
+  coord_cartesian(xlim = db_xlim, ylim = db_ylim, expand = FALSE) +
   theme_minimal() +
   theme(axis.title = element_text(size = 25, face = "bold"),
         axis.text  = element_text(size = 22, color = "black"),
@@ -253,10 +260,6 @@ dev.off()
 # svg("OUT/7W_ENV/wk_dbRDA.svg", width = 24, height = 13.2)
 # gridExtra::grid.arrange(p1, p2, ncol = 2)
 # dev.off()
-
-# dbRDA axis ranges
-# min(sc_si$dbRDA1); min(sc_si$dbRDA2); min(sc_si$dbRDA3)
-# max(sc_si$dbRDA1); max(sc_si$dbRDA2); max(sc_si$dbRDA3)
 
 
 # 3D dbRDA for further exploration
@@ -430,18 +433,18 @@ kw_p <- setNames(environment_kruskal$`Kruskal-Wallis p-value`, environment_krusk
 # Significant Dunn pairwise differences among clusters
 environment_dunn <- map_dfr(env_vars, \(var) {
   if (is.na(kw_p[[var]]) || kw_p[[var]] >= 0.05) return(tibble())
-    d <- meta.wk %>% transmute(Cluster = as.character(Cluster), Value = .data[[var]]) %>% drop_na()
-    dt <- dunn.test(d$Value, d$Cluster, method = "bh", kw = FALSE, altp = TRUE, table = FALSE, list = FALSE, interpret = FALSE)
-    med <- tapply(d$Value, d$Cluster, median)
-    med <- setNames(as.numeric(med), names(med))  # remove array dimension
-    groups <- str_split_fixed(dt$comparisons, "\\s+-\\s+", 2)
-    g1 <- groups[, 1]
-    g2 <- groups[, 2]
-    group1 <- unname(cl_labels[as.numeric(g1)])
-    group2 <- unname(cl_labels[as.numeric(g2)])
-    tibble(Parameter = env_labels[[var]],
-           `Direction of difference` = case_when(med[g1] > med[g2] ~ paste(group1, ">", group2), med[g2] > med[g1] ~ paste(group2, ">", group1),
-                                                 TRUE ~ paste(group1, "=", group2)), `BH-adjusted p-value` = dt$altP.adjusted)}) %>%
+  d <- meta.wk %>% transmute(Cluster = as.integer(as.character(Cluster)), Value = .data[[var]]) %>% drop_na()
+  dt <- dunn.test(d$Value, d$Cluster, method = "bh", kw = FALSE, altp = TRUE, table = FALSE, list = FALSE, interpret = FALSE)
+  med <- tapply(d$Value, d$Cluster, median)
+  med <- setNames(as.numeric(med), names(med))  # remove array dimension
+  groups <- str_split_fixed(dt$comparisons, "\\s+-\\s+", 2)
+  g1 <- groups[, 1]
+  g2 <- groups[, 2]
+  group1 <- unname(cl_labels[as.numeric(g1)])
+  group2 <- unname(cl_labels[as.numeric(g2)])
+  tibble(Parameter = env_labels[[var]],
+         `Direction of difference` = case_when(med[g1] > med[g2] ~ paste(group1, ">", group2), med[g2] > med[g1] ~ paste(group2, ">", group1),
+                                               TRUE ~ paste(group1, "=", group2)), `BH-adjusted p-value` = dt$altP.adjusted)}) %>%
   filter(`BH-adjusted p-value` < 0.05) %>% arrange(Parameter, `BH-adjusted p-value`) %>%
   mutate(`BH-adjusted p-value` = map_chr(`BH-adjusted p-value`, scientific_txt))
 
