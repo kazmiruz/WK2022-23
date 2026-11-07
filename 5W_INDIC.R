@@ -6,7 +6,8 @@
 # Prerequisite: run 2W_TAX, 3W_CLUS, and 4W_PLANKT first, as they generate various objects used here.
 #
 # Outputs:
-#   OUT/5W_INDIC/dot_ASV_indic_cosmo2.pdf / .png
+#   OUT/5W_INDIC/dot_ASV_indic_cosmo2.pdf / .png     (Figure 6: prevalent bioindicators and cosmopolitans)
+#   OUT/5W_INDIC/dot_ASV_not_indic_or_cosmo2.pdf     (exploration: abundant ASVs that are neither bioindicators nor cosmopolitans)
 # -------------------------------------------------------------------------
 
 # ========================= # Libraries # =========================
@@ -443,14 +444,14 @@ final_indic <- row_indic$plot_row / plot_spacer() / legend_plot + plot_layout(he
 save_plot(final_indic, "OUT/5W_INDIC/dot_ASV_indic_cosmo2.pdf", width_inches, height_inches, res_dpi)
 save_plot(final_indic, "OUT/5W_INDIC/dot_ASV_indic_cosmo2.png", width_inches, height_inches, res_dpi)
 
-# # --- NON-INDIC & NON-COSMO ---
-# row_not_indic <- build_main_row(proptab.not.indic.cosmo, thr_euk = thr_euk_not_indic, thr_prok = thr_prok_not_indic)
-# euk_colors_dot_extended <- row_not_indic$euk_cols_ext
-# prok_colors_dot_extended <- row_not_indic$prok_cols_ext
-# euk_phyla_used       <- row_not_indic$euk_phyla_used
-# prok_phyla_used      <- row_not_indic$prok_phyla_used
-# legend_plot <- create_clean_legend_with_dots()
-# final_not_indic <- row_not_indic$plot_row / plot_spacer() / legend_plot + plot_layout(heights = c(10, LEGEND_GAP_HT, 1)) +
-#   plot_annotation(theme = theme(plot.margin = margin(0, 0, 0, 0)))
-# save_plot(final_not_indic, "OUT/5W_INDIC/dot_ASV_not_indic_or_cosmo2.pdf", width_inches, height_inches, res_dpi)
+# --- NON-INDIC & NON-COSMO --- exploration: abundant ASVs that are neither bioindicators nor cosmopolitans
+row_not_indic <- build_main_row(proptab.not.indic.cosmo, thr_euk = thr_euk_not_indic, thr_prok = thr_prok_not_indic)
+euk_colors_dot_extended <- row_not_indic$euk_cols_ext
+prok_colors_dot_extended <- row_not_indic$prok_cols_ext
+euk_phyla_used       <- row_not_indic$euk_phyla_used
+prok_phyla_used      <- row_not_indic$prok_phyla_used
+legend_plot <- create_clean_legend_with_dots()
+final_not_indic <- row_not_indic$plot_row / plot_spacer() / legend_plot + plot_layout(heights = c(10, LEGEND_GAP_HT, 1)) +
+  plot_annotation(theme = theme(plot.margin = margin(0, 0, 0, 0)))
+save_plot(final_not_indic, "OUT/5W_INDIC/dot_ASV_not_indic_or_cosmo2.pdf", width_inches, height_inches, res_dpi)
 

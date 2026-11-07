@@ -14,15 +14,16 @@
 #   CTD/2023_rosette_bottle_data.csv            (2023 upcast of CTD+bottles)
 #   CTD/tsg_2022_merged.csv                     (2022 thermosalinograph)
 #   CTD/WK_TSG_data_2023/                       (2023 thermosalinograph)
-#   CTD/JBE_2022_CastAway_CC1744004_Data/       (2022 CastaAway)
-#   CTD/JBE_2023_CastAway_CC1744004_Data/       (2023 CastaAway)
+#   CTD/JBE_2022_CastAway_CC1744004_Data/       (2022 CastAway)
+#   CTD/JBE_2023_CastAway_CC1744004_Data/       (2023 CastAway)
 #   DNA/meta.wk.genohub.csv                     (information on DNA extraction/analysis w/ genohub ID )
 #   DNA/meta.wk.report.approx.csv               (reviewed and cross-referenced information on the samples collected by the microbial team)
 #   EXT/ne_10m/                                 (includes the coastline shape file and associated files)
 #
 # Output:
-#   EXT/meta.wk.complete.rds                    (final metadata table)
-#   OUT/1W_META/wk_parameters_hist.pdf           (histograms of all numeric variables)
+#   EXT/meta.wk.complete.rds                    (final metadata table; input for 2W_TAX)
+#   OUT/1W_META/ctd.odv.csv                     (exploration: CTD/CastAway profiles + DNA sample positions for Ocean Data View, to check station pairing)
+#   OUT/1W_META/wk_parameters_hist.pdf          (exploration: histograms of all numeric variables to check for oddities)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
@@ -235,10 +236,10 @@ meta.wk <- meta.wk.genohub %>%
 
 #############
 
-# #
-# ## save to csv for ODV to assess proximity of your sampled stations & the stations you use to approximate the metadata
-# # Code = 0 for your sampled stations & Code 1-4 for CTD and CastAway; ignore TSG here
-# write.csv(bind_rows(ctd %>% filter(Code < 5), meta.wk %>% mutate(Code = 0)), "OUT/1W_META/ctd.odv.csv", row.names = FALSE, fileEncoding = "UTF-8")
+## Exploration: save to csv for Ocean Data View (ODV) to assess the proximity of the sampled stations
+## and the CTD/CastAway stations used to approximate their metadata
+# Code = 0 for the sampled stations & Code 1-4 for CTD and CastAway; TSG (Code 5) is ignored here
+write.csv(bind_rows(ctd %>% filter(Code < 5), meta.wk %>% mutate(Code = 0)), "OUT/1W_META/ctd.odv.csv", row.names = FALSE, fileEncoding = "UTF-8")
 
 #############
 
@@ -421,14 +422,19 @@ meta.wk.complete <- bind_rows(meta.wk.bot, meta.wk.auto, meta.wk.nisk, meta.wk.f
          # Known WK filtration conditions
          `Sequential filtration` = 0L, `Pore size [μm]` = 0.22) %>%
   
-  # MLD from the complete rosette downcast profile
+  # MLD from the complete rosette downcast profile (Peralta-Ferriz & Woodgate 2015 threshold, 0.1 kg/m^3 relative to the shallowest bin):
+  # the maximum depth to which sigma-theta stays CONTINUOUSLY within the threshold, i.e. the bin above the first exceedance.
+  # For monotonic profiles, this equals their "maximum depth within the threshold"; density inversions below the pycnocline
+  # (profiles they rejected in QC) do not extend the mixed layer, e.g. MLD = 1.49 m at 2022 STN-17 cast 22 despite a deeper 1.5 kg/m^3 inversion.
+  # If the threshold is never exceeded, the water column is mixed to the bottom of the cast (MLD = deepest bin).
   left_join(ctd %>%
               filter(Sampling == "ROS-D", !is.na(`Sigma-theta [kg/m^3]`)) %>%
               mutate(Cast = suppressWarnings(as.integer(as.character(Cast)))) %>%
               group_by(Cruise, Station, Cast, Year, Month, Day) %>%
+              arrange(`Depth [m]`, .by_group = TRUE) %>%
               summarise(`Mixed layer depth [m]` = {
-                sigma_ref <- `Sigma-theta [kg/m^3]`[which.min(`Depth [m]`)]
-                max(`Depth [m]`[`Sigma-theta [kg/m^3]` <= sigma_ref + 0.1])
+                exceed <- which(`Sigma-theta [kg/m^3]` > `Sigma-theta [kg/m^3]`[1] + 0.1)
+                if (length(exceed)) `Depth [m]`[exceed[1] - 1] else max(`Depth [m]`)
               }, .groups = "drop"),
             by = c("Cruise", "Station", "Cast", "Year", "Month", "Day")) %>%
   
@@ -477,8 +483,8 @@ meta.wk.complete <- bind_rows(meta.wk.bot, meta.wk.auto, meta.wk.nisk, meta.wk.f
 saveRDS(meta.wk.complete, "EXT/meta.wk.complete.rds")
 
 
-#################################################################################
-### Explore the distribution of parameters to make sure there are no oddities ###
+##################################################################################
+### Exploration: distribution of parameters to make sure there are no oddities ###
 
 pdf("OUT/1W_META/wk_parameters_hist.pdf", width = 8.5, height = 12)    # Open PDF
 par(mfrow = c(3, 2), mar = c(5, 6, 4, 3))                      # Six plots per page with wider margins

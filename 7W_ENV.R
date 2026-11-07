@@ -10,13 +10,16 @@
 #
 # Prerequisite: run 2W_TAX, 3W_CLUS, 4W_PLANKT, and 6W_MAPS first, as they generate various objects used here.
 #
+# Required external files:
+#   DNA/WK_filelist.txt                                         (list of sequencing files for the SRA table)
+#
 # Outputs:
-#   OUT/7W_ENV/wk_dbRDA_many.pdf                                (multi‑page diagnostic, each environmental variable)
-#   OUT/7W_ENV/wk_dbRDA.pdf / .png                              (2‑panel ordination)
-#   OUT/7W_ENV/wk_dbRDA_3d.html                                 (interactive 3‑D plot)
-#   OUT/7W_ENV/wk_ts.pdf / .png                                 (T‑S-D bubble plot)
-#   OUT/7W_ENV/wk_fc.pdf / .png                                 (fChl-a‑fCDOM-attenuation bubble plot)
-#   OUT/7W_ENV/Environmental_statistics.xlsx                    (env properties of clusters and statistically sign-t diff-ces btwn them)
+#   OUT/7W_ENV/wk_dbRDA_many.pdf                                (exploration: multi‑page diagnostic, samples sized by each environmental variable)
+#   OUT/7W_ENV/wk_dbRDA.pdf / .png                              (Figure 4: 2‑panel ordination; optional .svg for Inkscape in commented code)
+#   OUT/7W_ENV/wk_dbRDA_3d.html                                 (exploration: interactive 3‑D plot of dbRDA1-3)
+#   OUT/7W_ENV/wk_ts.pdf / .png                                 (Figure 3A: T‑S-D bubble plot)
+#   OUT/7W_ENV/wk_fc.pdf / .png                                 (Figure 3B: fChl-a‑fCDOM-attenuation bubble plot)
+#   OUT/7W_ENV/Environmental_statistics.xlsx                    (Tables S1-S2: env properties of clusters and statistically sign-t diff-ces btwn them)
 #   OUT/7W_ENV/NCBI_submission/WK_MIMARKS.survey.water.6.0.csv  (MIMARKS table for NCBI)
 #   OUT/7W_ENV/NCBI_submission/WK_SRA_metadata.csv              (SRA table for NCBI)
 
@@ -32,6 +35,7 @@ library(gridExtra)
 library(plotly)     # for 3D dbRDA
 library(htmlwidgets)
 library(dunn.test)
+library(openxlsx)   # for writing complex Excel files
 
 ####################################################################################################################
 ### dbRDA (distance-based Redundancy Analysis; in this case, we will base it on the Bray Curtis Distance matrix) ###
@@ -40,7 +44,7 @@ library(dunn.test)
 # dbRDA is used to identify how environmental variables influence microbial relative abundance.
 # Vectors point in the direction of their greatest +ve influence and away from their greatest -ve influence.
 # Many know PCA - an unconstrained form of ordination that searches for ANY variables best explaining the community dynamics.
-# In contarst, RDA is constrained as it tries to explain the community dynamics with the explanatory (environmental) variables GIVEN.
+# In contrast, RDA is constrained as it tries to explain the community dynamics with the explanatory (environmental) variables GIVEN.
 
 # Info that helped me to put together a dbRDA pipeline below:
 # https://youtu.be/Wqa7_18jf5A
@@ -137,7 +141,7 @@ sc_si <- scores(rda_model, display = "sites", choices = 1:rda_model$CCA$rank) %>
   as.data.frame() %>% cbind(metadata) %>% mutate(Cluster = as.factor(Cluster))
 arrow_scaling_factor <- max(abs(as.matrix(sc_bp[grep("^dbRDA", names(sc_bp))])), na.rm = TRUE) * 1.7
 
-## dbRDA plots for exploration: one page per numeric variable sized onto points
+## Exploration: dbRDA plots with one page per numeric variable sized onto points
 pdf(file = "OUT/7W_ENV/wk_dbRDA_many.pdf", width = 35, height = 20)
 numeric_vars <- meta.wk %>% select(Year, "Bottom depth [m]", "Depth [m]", "Temperature [deg C]", "Salinity",
                                    "Chlorophyll-a fluorescence [mg/m^3]", "CDOM fluorescence [mg/m^3]", "Beam attenuation [1/m]",
@@ -256,13 +260,13 @@ png("OUT/7W_ENV/wk_dbRDA.png", width = 24, height = 13.2, units = "in", res = 30
 gridExtra::grid.arrange(p1, p2, ncol = 2)
 dev.off() 
 
-# # save side-by-side (for Inkscape)
+# # Optional: save side-by-side as .svg for manual editing in Inkscape
 # svg("OUT/7W_ENV/wk_dbRDA.svg", width = 24, height = 13.2)
 # gridExtra::grid.arrange(p1, p2, ncol = 2)
 # dev.off()
 
 
-# 3D dbRDA for further exploration
+# Exploration: interactive 3D dbRDA
 p3d <- plot_ly() %>% add_markers(data = sc_si, x = ~dbRDA1, y = ~dbRDA2, z = ~dbRDA3, color = ~Cluster, colors = cluster_palette, # sites
                                  symbol = ~Year, symbols = c(`2022` = "circle", `2023` = "diamond"), mode = "markers",
                                  marker = list(size = 6, line = list(color = "black", width = 1)), hoverinfo = "text",
@@ -284,7 +288,8 @@ p3d <- plot_ly() %>% add_markers(data = sc_si, x = ~dbRDA1, y = ~dbRDA2, z = ~db
                                    tickfont = list(color="black"), range = c(-3,2)),
                       aspectmode = "data"),
          legend = list(orientation = "h"), showlegend = FALSE)
-htmlwidgets::saveWidget(p3d, "OUT/7W_ENV/wk_dbRDA_3d.html", selfcontained = TRUE)
+htmlwidgets::saveWidget(p3d, "OUT/7W_ENV/wk_dbRDA_3d.html", selfcontained = TRUE)  # self-contained HTML; requires pandoc (included with RStudio)
+unlink("OUT/7W_ENV/wk_dbRDA_3d_files", recursive = TRUE)                              # remove the temporary library folder left by saveWidget
 
 # #PCA inspection
 # # if it generally agrees w/ dbRDA, then your env. variables are doing a good job explaining the Bray-Curtis dissimilarity
@@ -307,7 +312,7 @@ htmlwidgets::saveWidget(p3d, "OUT/7W_ENV/wk_dbRDA_3d.html", selfcontained = TRUE
 ################
 
 p_ts <- ggplot(meta_grouped, aes(`Salinity`, `Temperature [deg C]`)) +
-  scale_x_continuous(limits = c(0, 31), trans = exp_trans(1.15),  # exp transformation
+  scale_x_continuous(limits = c(0, 31), trans = transform_exp(1.15),  # exp transformation
                      breaks = c(0, 10, 15, 20, 25, 30, 31), minor_breaks = NULL) +
   scale_y_continuous(limits = c(-1, 15), breaks = c(-1, 0, 3, 6, 9, 12, 15), minor_breaks = NULL) +
   geom_point(aes(color = factor(Cluster), shape = factor(Year)), fill = NA, size = 7, stroke = 2.5) +
@@ -342,7 +347,7 @@ dev.off()
 
 meta_grouped_FC <- meta_grouped %>% filter(!is.na(`Beam attenuation [1/m]`))
 p_fc <- ggplot(meta_grouped_FC, aes(`CDOM fluorescence [mg/m^3]`, `Chlorophyll-a fluorescence [mg/m^3]`)) +
-  scale_x_continuous(limits = c(1, 100), trans = log_trans(),  # log transformation
+  scale_x_continuous(limits = c(1, 100), trans = transform_log(),  # log transformation
                      breaks = c(1, 2, 5, 10, 25, 50, 100), minor_breaks = NULL) +
   scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 11), minor_breaks = NULL) +
   geom_point(aes(color = factor(Cluster), shape = factor(Year)), fill = NA, size = 7, stroke = 2.5) +
@@ -491,6 +496,8 @@ fmt_num <- function(x, digits = 3) if_else(is.na(x), NA_character_, sub("\\.?0+$
 wk <- meta.wk %>%
   mutate(depth_id = fmt_num(`Depth [m]`),
          coastal = case_when(is.na(`Distance to coast [km]`) ~ NA, `Distance to coast [km]` <= 10 ~ TRUE, TRUE ~ FALSE),
+         # River samples (salinity < 5, i.e. fresh to oligohaline in the Venice system; the Maquatua River samples, MR) get freshwater terms
+         riverine = !is.na(Salinity) & Salinity < 5,
          sample_name = if_else(is.na(Cruise) | is.na(Station) | is.na(depth_id), NA_character_,
                                str_replace_all(paste(Cruise, Station, paste0(depth_id, "m"), sep = "_"), "[^A-Za-z0-9._-]", "-")),
          sample_title = if_else(is.na(sample_name), NA_character_,
@@ -504,10 +511,12 @@ wk <- meta.wk %>%
 
 mimarks_wk <- wk %>%
   transmute(`*sample_name` = sample_name, sample_title, bioproject_accession = .env$bioproject_accession,
-            `*organism` = "marine metagenome", `*collection_date` = collection_date, `*depth` = `Depth [m]`,
-            `*env_broad_scale` = "marine biome [ENVO:00000447]",
-            `*env_local_scale` = if_else(coastal, "coastal water body [ENVO:02000049]", "marine pelagic zone [ENVO:00000208]"),
-            `*env_medium` = if_else(coastal, "coastal sea water [ENVO:00002150]", "sea water [ENVO:00002149]"),
+            `*organism` = if_else(riverine, "freshwater metagenome", "marine metagenome"), `*collection_date` = collection_date, `*depth` = `Depth [m]`,
+            `*env_broad_scale` = if_else(riverine, "freshwater river biome [ENVO:01000253]", "marine biome [ENVO:00000447]"),
+            `*env_local_scale` = case_when(riverine ~ "river [ENVO:00000022]", coastal ~ "coastal water body [ENVO:02000049]",
+                                           TRUE ~ "marine pelagic zone [ENVO:00000208]"),
+            `*env_medium` = case_when(riverine ~ "river water [ENVO:01000599]", coastal ~ "coastal sea water [ENVO:00002150]",
+                                      TRUE ~ "sea water [ENVO:00002149]"),
             `*geo_loc_name` = geo_loc_name,
             `*lat_lon` = if_else(is.na(`Latitude [deg]`) | is.na(`Longitude [deg]`), NA_character_,
                                  sprintf("%.5f %s %.5f %s", abs(`Latitude [deg]`), if_else(`Latitude [deg]` >= 0, "N", "S"),
@@ -547,7 +556,7 @@ sra_wk <- bind_rows(build_lookup(rownames(seqtab.16S), "16S"), build_lookup(rown
   inner_join(wk %>% select(plate.geno, sample_name, sample_title), by = "plate.geno") %>%
   left_join(file_map, by = "library_ID") %>%
   arrange(match(plate.geno, wk$plate.geno), match(marker, c("16S", "18S"))) %>%
-  transmute(sample_name, library_ID, title = str_replace(sample_title, "16S and 18S", marker),
+  transmute(sample_name, library_ID, title = paste0(marker, " rRNA gene metabarcoding of marine microbial communities: ", sub("^Hudson Bay microbial communities: ", "", sample_title)),  # as submitted to the SRA
             library_strategy = "AMPLICON", library_source = "METAGENOMIC", library_selection = "PCR",
             library_layout = "paired", platform = "ILLUMINA", instrument_model = "Illumina NovaSeq 6000",
             design_description = paste0("as per CD Genomics; Earth Microbiome Project ", marker, " rRNA gene primers"),

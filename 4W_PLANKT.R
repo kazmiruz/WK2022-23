@@ -13,9 +13,9 @@
 #   EXT/wk.shannon_diversity.rds                     (pre‑computed Shannon indices; can reproduce using commented code)
 #
 # Outputs:
-#   OUT/4W_PLANKT/cluster_top10_group_stackedbar.pdf (top 10 major groups per cluster for exploration)
-#   OUT/4W_PLANKT/plankton_communities.pdf / .png    (major taxonomic groups and Shannon diversity for both eukaryotes and prokaryotes)
-#   OUT/4W_PLANKT/Shannon_statistics.xlsx            (Shannon diversity statistics: change btwn clusters and corr. w/ env. parameters)
+#   OUT/4W_PLANKT/top10_per_cluster.pdf              (exploration: top 10 major groups per cluster, used to choose the groups coloured in Figure 5)
+#   OUT/4W_PLANKT/plankton_communities.pdf / .png    (Figure 5: major taxonomic groups and Shannon diversity for both eukaryotes and prokaryotes)
+#   OUT/4W_PLANKT/Shannon_statistics.xlsx            (Tables S3-S4: Shannon diversity statistics: change btwn clusters and corr. w/ env. parameters)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
@@ -145,31 +145,32 @@ top10_groups <- cluster_group %>% group_by(Cluster, Domain2) %>% slice_max(AvgAb
 euk_data <- top10_groups %>% filter(Domain2 == "Eukaryote") %>% mutate(Group = factor(Group, levels = rev(names(euk_colors)), ordered = TRUE))
 prok_data <- top10_groups %>% filter(Domain2 == "Prokaryote") %>% mutate(Group = factor(Group, levels = rev(names(prok_colors)), ordered = TRUE))
 
-# # Create plots with position_stack (reverse=TRUE)
-# euk_plot <- ggplot(euk_data, aes(x = AvgAbund, y = Cluster, fill = Group)) +
-#   geom_bar(stat = "identity", position = position_stack(reverse = FALSE), width = 0.7, color = "black", linewidth = 0.1) +
-#   scale_fill_manual(values = euk_colors, breaks = names(euk_colors), drop = FALSE) +
-#   scale_x_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, 100)) +
-#   labs(x = "Eukaryotic Relative Abundance (%)", y = "Cluster", title = "Eukaryota") +
-#   theme_bw() + theme(axis.text.y = element_text(face = "bold", color = "black", size = 15), panel.grid.major.y = element_blank(),
-#                      legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 10)) +
-#   guides(fill = guide_legend(ncol = 4, byrow = FALSE, title.position = "top", label.position= "right"))
-# 
-# prok_plot <- ggplot(prok_data, aes(x = AvgAbund, y = Cluster, fill = Group)) +
-#   geom_bar(stat = "identity", position = position_stack(reverse = FALSE), width = 0.7, color = "black", linewidth = 0.1) +
-#   scale_fill_manual(values = prok_colors, breaks = names(prok_colors), drop = FALSE) +
-#   scale_x_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, 100)) +
-#   labs(x="Prokaryotic Relative Abundance (%)", y = NULL, title = "Prokaryota") +
-#   theme_bw() + theme(axis.text.y = element_text(face = "bold", color = "black", size = 15), panel.grid.major.y = element_blank(),
-#                      legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 10)) +
-#   guides(fill = guide_legend(ncol = 4, byrow = FALSE, title.position = "top", label.position = "right"))
-# 
-# # Combine and save
-# combined_plot <- euk_plot + prok_plot + plot_layout(nrow = 1, widths = c(1, 1))
-# cairo_pdf("OUT/4W_PLANKT/top10_per_cluster.pdf", width = 15, height = 6, onefile = FALSE); print(combined_plot); dev.off()
-#
-#
-# ## This is for further exploration and to make it easier to report specific numbers in the Results/Discussion
+# Exploration: top 10 major groups per cluster, used to choose which groups to colour in Figure 5
+# Create plots with position_stack (reverse=TRUE)
+top10_euk_plot <- ggplot(euk_data, aes(x = AvgAbund, y = Cluster, fill = Group)) +
+  geom_bar(stat = "identity", position = position_stack(reverse = FALSE), width = 0.7, color = "black", linewidth = 0.1) +
+  scale_fill_manual(values = euk_colors, breaks = names(euk_colors), drop = FALSE) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, 100)) +
+  labs(x = "Eukaryotic Relative Abundance (%)", y = "Cluster", title = "Eukaryota") +
+  theme_bw() + theme(axis.text.y = element_text(face = "bold", color = "black", size = 15), panel.grid.major.y = element_blank(),
+                     legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 10)) +
+  guides(fill = guide_legend(ncol = 4, byrow = FALSE, title.position = "top", label.position= "right"))
+
+top10_prok_plot <- ggplot(prok_data, aes(x = AvgAbund, y = Cluster, fill = Group)) +
+  geom_bar(stat = "identity", position = position_stack(reverse = FALSE), width = 0.7, color = "black", linewidth = 0.1) +
+  scale_fill_manual(values = prok_colors, breaks = names(prok_colors), drop = FALSE) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, 100)) +
+  labs(x="Prokaryotic Relative Abundance (%)", y = NULL, title = "Prokaryota") +
+  theme_bw() + theme(axis.text.y = element_text(face = "bold", color = "black", size = 15), panel.grid.major.y = element_blank(),
+                     legend.position = "bottom", legend.title = element_blank(), legend.text = element_text(size = 10)) +
+  guides(fill = guide_legend(ncol = 4, byrow = FALSE, title.position = "top", label.position = "right"))
+
+# Combine and save
+top10_plot <- top10_euk_plot + top10_prok_plot + plot_layout(nrow = 1, widths = c(1, 1))
+cairo_pdf("OUT/4W_PLANKT/top10_per_cluster.pdf", width = 15, height = 6, onefile = FALSE); print(top10_plot); dev.off()
+
+
+### This is for further exploration and to make it easier to report specific numbers in the Results/Discussion
 #
 # # Mean RelAb of ASVs across all samples
 # tibble(ASV = str_extract(colnames(proptab.wk.original), "ASV_\\d+"), RelAb = colMeans(proptab.wk.original) * 100) %>% View
@@ -255,11 +256,17 @@ shannon_long <- meta.wk %>% rownames_to_column("Sample") %>%
   mutate(Domain = recode(Domain, Shannon_Euk = "Eukaryota", Shannon_Prok = "Prokaryota"),
          Domain = factor(Domain, levels = domain_order), Cluster = factor(cl_labels[as.numeric(Cluster)], levels = rev(cl_labels), ordered = TRUE))
 by_dom <- split(shannon_long, shannon_long$Domain)
+# For among-cluster tests, exclude clusters with < 2 Shannon values in a domain (MR retains one sample after rarefaction):
+# a single observation has no within-group variability, so it cannot represent its cluster in Kruskal-Wallis/Dunn tests.
+# Such clusters are still shown in the boxplot and summary table, and their samples are kept in the Spearman correlations.
+min_n_test <- 2
+by_dom_test <- map(by_dom, \(d) d %>% add_count(Cluster, name = "n_clus") %>% filter(n_clus >= min_n_test) %>% select(-n_clus) %>% droplevels())
+imap(by_dom, \(d, dom) setdiff(levels(droplevels(d$Cluster)), levels(by_dom_test[[dom]]$Cluster))) %>% print() # clusters excluded from tests
 
 # Plot Shannon diversity for eukaryotes and prokaryotes
 shannon_plot <- ggplot(shannon_long, aes(Shannon, Cluster, color = Domain)) +
   geom_boxplot(fill = "white", width = 0.6, outlier.shape = NA, position = position_dodge(0.8)) +
-  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8), size = 1.5, alpha = 0.8) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8, seed = 161193), size = 1.5, alpha = 0.8) +  # seed for reproducible jitter
   scale_color_manual(values = c(Eukaryota = "#D55E00", Prokaryota = "#0072B2")) +
   scale_x_continuous(breaks = 1:6, expand = c(0, 0)) + coord_cartesian(xlim = c(1, 6)) + # adjust according to your Shannon results
   labs(x = "Shannon Diversity Index", y = NULL) +
@@ -271,17 +278,17 @@ shannon_summary <- shannon_long %>% group_by(Domain, Cluster) %>%
   arrange(Domain, desc(Cluster))
 
 # Check ANOVA residual normality before choosing ANOVA or Kruskal-Wallis
-fits <- lapply(by_dom, \(d) aov(Shannon ~ Cluster, data = d))
+fits <- lapply(by_dom_test, \(d) aov(Shannon ~ Cluster, data = d))
 imap_dfr(fits, \(m, dom) tibble(Domain = dom, `Shapiro p-value` = shapiro.test(residuals(m))$p.value)) %>%
   mutate(Domain = factor(Domain, levels = domain_order)) %>% arrange(Domain) %>% print() # Shapiro p < 0.05 indicates non-normal residuals for proks
 walk2(fits, names(fits), ~{ qqnorm(residuals(.x), main = .y); qqline(residuals(.x), col = "red") }) # depart from the red line -> non-normal residuals
 
 # Overall differences in Shannon diversity among clusters (Kruskal-Wallis test)
-shannon_kruskal <- imap_dfr(by_dom, \(d, dom) tibble(Domain = dom, `Kruskal-Wallis p-value` = kruskal.test(Shannon ~ Cluster, data = d)$p.value)) %>%
+shannon_kruskal <- imap_dfr(by_dom_test, \(d, dom) tibble(Domain = dom, `Kruskal-Wallis p-value` = kruskal.test(Shannon ~ Cluster, data = d)$p.value)) %>%
   mutate(Domain = factor(Domain, levels = domain_order)) %>% arrange(Domain)
 
 # Significant pairwise differences in Shannon diversity among clusters (post hoc Dunn’s test with Benjamini-Hochberg adjustment)
-shannon_dunn <- imap_dfr(by_dom, \(d, dom) {
+shannon_dunn <- imap_dfr(by_dom_test, \(d, dom) {
   med <- c(tapply(d$Shannon, d$Cluster, median))
   dt <- dunn.test::dunn.test(d$Shannon, as.integer(d$Cluster), method = "bh", kw = FALSE, altp = TRUE, list = TRUE)
   groups <- str_split_fixed(dt$comparisons, "\\s+-\\s+", 2)
@@ -293,13 +300,25 @@ shannon_dunn <- imap_dfr(by_dom, \(d, dom) {
   filter(`BH-adjusted p-value` < 0.05) %>% mutate(Domain = factor(Domain, levels = domain_order)) %>% arrange(Domain, `BH-adjusted p-value`)
 
 # Significant Spearman correlations with spatiotemporal and environmental parameters
-shannon_spearman <- shannon_long %>%
-  pivot_longer(where(is.numeric) & !any_of(c("Shannon", "Cluster")), names_to = "Parameter", values_to = "Value") %>%
+# Test only the parameters described in Methods 2.1 (sample characteristics, concurrent measurements, and derived parameters);
+# bookkeeping (Cast, Bottle, time components), technical (reads, DNA), and redundant density variables are excluded.
+# Sampling time is represented by the fractional day of year (date + time of day); Year has only two levels and is captured by the clusters.
+spearman_params <- c("Latitude (°N)" = "Latitude [deg]", "Longitude (°E)" = "Longitude [deg]", "Depth (m)" = "Depth [m]",
+                     "Bottom depth (m)" = "Bottom depth [m]", "Sampling time (day of year)" = "DOY",
+                     "Temperature (°C)" = "Temperature [deg C]", "Salinity" = "Salinity",
+                     "fChl-a (mg m⁻³)" = "Chlorophyll-a fluorescence [mg/m^3]", "fCDOM (mg m⁻³)" = "CDOM fluorescence [mg/m^3]",
+                     "Beam attenuation (m⁻¹)" = "Beam attenuation [1/m]", "Mixed layer depth (m)" = "Mixed layer depth [m]",
+                     "Distance to coast (km)" = "Distance to coast [km]")
+shannon_spearman_all <- shannon_long %>%
+  pivot_longer(all_of(unname(spearman_params)), names_to = "Parameter", values_to = "Value") %>%
+  mutate(Parameter = names(spearman_params)[match(Parameter, spearman_params)]) %>%
   filter(complete.cases(Shannon, Value)) %>% group_by(Domain, Parameter) %>%
   filter(n() >= 3, sd(Shannon) > 0, sd(Value) > 0) %>%
   summarise(n = n(), rho = cor(Shannon, Value, method = "spearman"),
             `p-value` = cor.test(Shannon, Value, method = "spearman", exact = FALSE)$p.value, .groups = "drop") %>%
-  filter(`p-value` < 0.001) %>% arrange(Domain, `p-value`)
+  arrange(Domain, `p-value`)
+shannon_spearman <- shannon_spearman_all %>% filter(`p-value` < 0.001) %>% mutate(rho = round(rho, 2)) %>% rename(`ρ` = rho)
+print(shannon_spearman_all, n = Inf)   # all tests (24 = 12 parameters x 2 domains), for reference
 
 # Export cluster results together and environmental results separately
 wb <- createWorkbook()

@@ -13,11 +13,11 @@
 #   EXT/titan_offshore_surface_latitude.rds (can reproduce using commented code)
 #
 # Outputs:
-#   OUT/3W_CLUS/wk_simple_hm.pdf                           (diagnostic heatmap)
-#   OUT/3W_CLUS/wk_complex_hm.pdf / .png                   (annotated ComplexHeatmap)
-#   OUT/3W_CLUS/dendro_pure.pdf / .png                     (dendrogram with cluster labels)
-#   OUT/3W_CLUS/titan_offshore_surface_latitude.pdf / .csv (TITAN output for latitude)
-#   OUT/3W_CLUS/titan_offshore_surface_salinity.pdf / .csv (TITAN output for salinity)
+#   OUT/3W_CLUS/wk_simple_hm.pdf                           (exploration: diagnostic heatmap to check the transformation and clustering)
+#   OUT/3W_CLUS/wk_complex_hm.pdf / .png                   (Figure S1: annotated ComplexHeatmap)
+#   OUT/3W_CLUS/dendro_pure.pdf / .png                     (cluster dendrogram shown alongside the maps in Figure 2)
+#   OUT/3W_CLUS/titan_offshore_surface_latitude.pdf / .csv (TITAN for latitude: change points in .csv reported in Section 3.3; .pdf for exploration)
+#   OUT/3W_CLUS/titan_offshore_surface_salinity.pdf / .csv (TITAN for salinity: change points in .csv reported in Section 3.3; .pdf for exploration)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
@@ -44,7 +44,7 @@ options("lifecycle_verbosity"="warning") # always get warnings if there are (not
 #   Finally, microbes can be used as tracers of water masses, complementing traditional parameters like T and S.
 
 # - EXPLORE the data with simple figures and tables before deciding which parameters contribute to the story.
-# - Prioritize NOVEL or UMEXPECTED patterns over well-established differences.
+# - Prioritize NOVEL or UNEXPECTED patterns over well-established differences.
 # - Focus on findings with IMPLICATIONS for researchers, modelers, and northern communities.
 # - Use each figure to COMMUNICATE a clear message and support the overall manuscript narrative.
 # -------------------------------------------------------------------------
@@ -203,7 +203,7 @@ col_ordered <- colnames(proptab.trans)[order.dendrogram(dend_col_order)]
 ##########################
 ### Diagnostic heatmap ###
 ##########################
-
+# Exploration: check the transformation and clustering before the final heatmap
 pdf("OUT/3W_CLUS/wk_simple_hm.pdf", width = 35, height = 20)
 heatmap.2(proptab.trans, Rowv = dend_row_order, Colv = dend_col_order, trace = "none", key = FALSE,
           margins = c(20, 30), col = viridis(256),
@@ -220,7 +220,7 @@ dev.off()
 set.seed(161193)
 # indicator_res <- multipatt(proptab.wk, meta.wk$Cluster, func = "IndVal.g",
 #                            duleg = FALSE, # If TRUE, Cluster combos aren't considered, only the original Clusters (1 to k, Dufrêne & Legendre, 1997)
-#                            max.order = 2, control = how(nperm = 999))
+#                            max.order = 2, control = how(nperm = 9999))
 # write_rds(indicator_res, "EXT/indicator_res.rds")       # 9 clusters w/ pairs
 indicator_res <- read_rds("EXT/indicator_res.rds")
 
@@ -238,7 +238,7 @@ indicator_res <- read_rds("EXT/indicator_res.rds")
 # indicator_res$sign
 # plot(colMeans(proptab.wk), indicator_res$sign$stat, log = 'xy') # for each ASV, plot Mean RelAb (cols = ASVs) vs stat (same order of ASVs)
 #
-# # The permutation test shuffles the group labels 999 times across samples while holding ASV abundances fixed. It tests if the microbe-group link is real.
+# # The permutation test shuffles the group labels 9,999 times across samples while holding ASV abundances fixed. It tests if the microbe-group link is real.
 # # A p-value <0.01 means that there is <1% chance that the link happened by accident. 
 # hist(indicator_res$sign$p.value, breaks = 100)                                 # most are <0.1
 #
@@ -392,7 +392,8 @@ draw_wk_complex_hm <- function() {
             
             columnAnnotation("Bioindicators & cosmopolitans" = top, "Most abundant of the above" = bottom,
                              col = list("Bioindicators & cosmopolitans" = pal_annot, "Most abundant of the above" = pal_annot),
-                             show_annotation_name = TRUE, annotation_name_side = "left", annotation_name_gp   = gpar(fontsize = 16, fontface = "bold"), show_legend = FALSE)
+                             show_annotation_name = TRUE, annotation_name_side = "left", annotation_name_gp = gpar(fontsize = 16, fontface = "bold"),
+                             show_legend = FALSE)
           },
           
           heatmap_height = unit(40, "cm"), heatmap_width = unit(68, "cm"),
@@ -538,14 +539,14 @@ for (nm in names(titan_specs)) {
   p_euk <- plot_taxa_ridges(subset_titan(ti, keep_euk), n_ytaxa = sum(keep_euk), printspp = FALSE, xlabel = variable)
   p_prok <- plot_taxa_ridges(subset_titan(ti, keep_prok), n_ytaxa = sum(keep_prok), printspp = FALSE, xlabel = variable)
   
-  # PDF: top panel shows the bootstrap distributions of community-level negative and positive change points;
+  # PDF (exploration): top panel shows the bootstrap distributions of community-level negative and positive change points;
   # Lower panels show taxon-specific change-point distributions for eukaryotic and prokaryotic bioindicator ASVs
   # retained in asv_in_dotplot and having a TITAN z-score >=5 (blue = decreasing; red = increasing along the gradient).
   pdf(paste0("OUT/3W_CLUS/titan_offshore_surface_", nm, ".pdf"), width = 12, height = 24)
   print(p_dens / p_euk / p_prok)
   dev.off()
   
-  # CSV: community change-point estimates and bootstrap intervals calculated using all TITAN taxa (sumz-/sumz+)
+  # CSV (change points reported in Section 3.3): community change-point estimates and bootstrap intervals calculated using all TITAN taxa (sumz-/sumz+)
   # and using only taxa with "pure" and "reliable" bootstrap responses (fsumz-/fsumz+).
   # "pure": the taxon consistently responds in the same direction across bootstraps;
   # "reliable": its response is repeatedly statistically supported across bootstraps.
@@ -558,10 +559,14 @@ for (nm in names(titan_specs)) {
 ###########################################
 
 # Test whether any offshore surface ASV is specifically associated with flow-through rather than rosette collection.
-group <- ifelse(off_surf$Sampling == "FT", "FT", "nonFT")
+# Separate from TITAN: offshore surface samples (>10 km from the coast, 1-5 m depth) and all ASVs present in any of them.
+ft_samples <- meta.wk %>% rownames_to_column("Sample") %>% filter(`Distance to coast [km]` > 10, between(`Depth [m]`, 1, 5))
+txa_ft <- proptab.wk[ft_samples$Sample, , drop = FALSE] %>% .[, colSums(.) > 0, drop = FALSE]
+group <- ifelse(ft_samples$Sampling == "FT", "FT", "nonFT")
+table(group)   # FT = 25, nonFT = 14
 
 set.seed(161193)
-ind <- multipatt(txa_off_surf, group, func = "IndVal.g", control = how(nperm = 999))
+ind <- multipatt(txa_ft, group, func = "IndVal.g", control = how(nperm = 9999))
 
 ft_idx <- match("FT", colnames(ind$A))
 ft_tested <- !is.na(ind$sign$index) & ind$sign$index == ft_idx & ind$sign$p.value < 0.01
@@ -569,5 +574,5 @@ if (any(ft_tested)) plot(ind$A[ft_tested, ft_idx], ind$B[ft_tested, ft_idx], xla
 keep_ft <- ft_tested & ind$A[, ft_idx] >= 0.6 & ind$B[, ft_idx] >= 0.6
 ft_asvs <- rownames(ind$A)[keep_ft]
 if (length(ft_asvs)) {
-  cbind(FT = colMeans(txa_off_surf[group == "FT", ft_asvs, drop = FALSE]),
-        nonFT = colMeans(txa_off_surf[group == "nonFT", ft_asvs, drop = FALSE]))} else {"No FT indicators"}
+  cbind(FT = colMeans(txa_ft[group == "FT", ft_asvs, drop = FALSE]),
+        nonFT = colMeans(txa_ft[group == "nonFT", ft_asvs, drop = FALSE]))} else {"No FT indicators"}

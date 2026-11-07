@@ -13,12 +13,12 @@
 #   EXT/HBC_stations.csv                   (HBC stations sampled in this and previous studies)
 #
 # Outputs:
-#   OUT/6W_MAPS/wk_maps.png                        (faceted cluster map)
-#   OUT/6W_MAPS/HBC_station_map.png                (map of stations sampled in HBC)
-#   OUT/6W_MAPS/diatoms_surface.png                (surface diatom map)
-#   OUT/6W_MAPS/dinos_surface.png                  (surface dinoflagellate map)
-#   OUT/6W_MAPS/algae_surface.png                  (surface non‑diatom algae map)
-#   OUT/6W_MAPS/cyano_surface.png                  (surface cyanobacteria map)
+#   OUT/6W_MAPS/wk_maps.png                        (Figure 2: faceted cluster map; optional .pdf in commented code)
+#   OUT/6W_MAPS/HBC_station_map.png                (Figure 1: map of stations sampled in this and previous eDNA studies in the HBC)
+#   OUT/6W_MAPS/diatoms_surface.png                (Figure S2A: surface diatom map; optional .pdf in commented code, as for all surface maps)
+#   OUT/6W_MAPS/algae_surface.png                  (Figure S2B: surface non‑diatom algae map)
+#   OUT/6W_MAPS/dinos_surface.png                  (Figure S2C: surface Dinophyceae map)
+#   OUT/6W_MAPS/cyano_surface.png                  (Figure S2D: surface cyanobacteria map)
 # -------------------------------------------------------------------------
 
 library(tidyverse)
@@ -30,8 +30,6 @@ library(ggnewscale)
 library(ggrepel)
 library(marmap)
 library(scales)
-library(vegan)     # for statistics (Kruskal)
-library(dunn.test) # Dunn's test
 
 
 # Divide samples by year and depth groups for plotting
@@ -133,7 +131,7 @@ p_maps <- ggplot() +
   geom_sf(data = r1_highlight, colour = "#08519c", linewidth = 0.9) +
   geom_sf(data = r2_highlight, colour = "#08519c", linewidth = 0.9) +
   geom_point(data = meta_grouped,
-             aes(jitter_lon, jitter_lat, colour = factor(Cluster), fill = factor(Cluster)),
+             aes(jitter_lon, jitter_lat, fill = factor(Cluster)),
              shape = 21, size = 4.5, stroke = 1.2, colour = "black") +
   geom_text(data = river_labels, aes(x, y, label = river), inherit.aes = FALSE,
             size = 5.5, fontface = "bold", colour = "#08299c") +
@@ -142,7 +140,6 @@ p_maps <- ggplot() +
                    box.padding = 0.3, point.padding = 0.2, segment.size = 0.6,
                    max.overlaps = Inf, force = 20, force_pull = 50, max.iter = 10000,
                    min.segment.length = 0.05, seed = 161193) +
-  scale_color_manual(values = cluster_palette, guide = "none") +
   scale_fill_manual(values = cluster_palette,
                     labels = \(x) setNames(cl_labels, 1:k)[as.character(x)], name = "Cluster") +
   guides(fill = guide_legend(order = 2, title.position = "top", title.hjust = 0.5, ncol = 1,
